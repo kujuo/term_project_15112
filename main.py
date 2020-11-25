@@ -11,10 +11,15 @@
     # last.fm API:
         # https://www.dataquest.io/blog/last-fm-api-python/
         # https://www.last.fm/api/
-    # XML file IO:
+    # pygame mixer:
+        # https://www.geeksforgeeks.org/python-playing-audio-file-in-pygame/
+    # XML file IO (not being demo-ed):
         # https://www.geeksforgeeks.org/reading-and-writing-xml-files-in-python/
     # CMU 112 graphics:
         # course notes (https://www.cs.cmu.edu/~112/notes/notes-animations-part3.html)
+    # HTTP requests:
+        # my old code from high school (AP research class)
+        # same resource as last.fm API
 
 
 from cmu_112_graphics import *
@@ -73,6 +78,11 @@ class LastFMUser(object):
 
     def getUserInfo(self):
         return self.lastFMGet({'method':'user.getInfo','user':self.username})
+    
+    def getUserLovedTracks(self):
+        return self.lastFMGet({'method':'user.getLovedTracks','user':self.username})
+
+    
 
 class MyApp(App):
     def appStarted(self):
@@ -82,6 +92,7 @@ class MyApp(App):
         self.rootDir = '/home/dee/code/schoolwork/15112/term_project/trial_runs/music_examples/'
         self.loaded = False
         self.paused = False
+        self.skipCount = 0
 
         # UI stuff
         self.buttons = {
@@ -115,14 +126,14 @@ class MyApp(App):
         else:
             print('load queue first, press q')
     
-    def loadQueue(self):
+    def loadQueue(self,pos=0):
         self.loaded = True
-        for track in os.listdir(self.rootDir)[1:]:
+        for track in os.listdir(self.rootDir):
             title = os.path.split(track)[1].split('.')[0] # gets song title
             song = Song(title=title,path=self.rootDir+track)
             self.examplePlaylist.addSong(song)
-        mixer.music.load(self.examplePlaylist.getSongs()[0].path)
-        for song in self.examplePlaylist.getSongs()[1:]:
+        mixer.music.load(self.examplePlaylist.getSongs()[pos].path)
+        for song in self.examplePlaylist.getSongs()[pos+1:]:
             mixer.music.queue(song.path)
         return len(self.examplePlaylist.getSongs())
 
@@ -132,6 +143,16 @@ class MyApp(App):
         elif event.key == 'q':
             numSongs = self.loadQueue()
             print(f'queueing {numSongs} songs.')
+        elif event.key == 'Left':
+            self.skipCount -= 1
+            mixer.music.unload()
+            self.loadQueue(self.skipCount)
+            mixer.music.play()
+        elif event.key == 'Right':
+            self.skipCount += 1
+            mixer.music.unload()
+            self.loadQueue(self.skipCount)
+            mixer.music.play()
 
     def playClicked(self,x,y):
         return (self.buttons['play'][0] <= x <= self.buttons['play'][2] and
@@ -154,7 +175,7 @@ class MyApp(App):
                 print(song.title)
         elif self.importClicked(event.x,event.y):
             self.lastfmUser.setUsername(self.getUserInput('enter last.fm username:'))
-            print(self.lastfmUser.getUserInfo())
+            print(self.lastfmUser.getUserLovedTracks())
             
 
     def drawButtons(self,canvas):
@@ -162,14 +183,20 @@ class MyApp(App):
         canvas.create_rectangle(self.buttons['play'][0],self.buttons['play'][1],
                                 self.buttons['play'][2],self.buttons['play'][3],
                                 fill='grey')
+        canvas.create_text(self.buttons['play'][0],self.buttons['play'][1],
+                                text='play',anchor='s')
         # playlist button
         canvas.create_rectangle(self.buttons['playlist'][0],self.buttons['playlist'][1],
                                 self.buttons['playlist'][2],self.buttons['playlist'][3],
                                 fill='grey')
+        canvas.create_text(self.buttons['playlist'][0],self.buttons['playlist'][1],
+                                text='print playlist',anchor='s')
         # last.fm data import button
         canvas.create_rectangle(self.buttons['dataImport'][0],self.buttons['dataImport'][1],
                                 self.buttons['dataImport'][2],self.buttons['dataImport'][3],
                                 fill='grey')
+        canvas.create_text(self.buttons['dataImport'][0],self.buttons['dataImport'][1],
+                                text='get last.fm data',anchor='s')
 
     def redrawAll(self,canvas):
         self.drawButtons(canvas)
