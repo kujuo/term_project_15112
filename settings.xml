@@ -1,7 +1,7 @@
 <settings>
-    <rootdir>/home/dee/Music</rootdir>
+    <rootdir>/test/</rootdir>
 
-    <lastfm>driyer</lastfm>
+    <lastfm>deeriyer</lastfm>
     
-    <colormode>light</colormode>
+    <colormode>dark</colormode>
 </settings>

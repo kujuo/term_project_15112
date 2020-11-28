@@ -1,5 +1,6 @@
 from cmu_112_graphics import *
 from design import *
+from xml_io import *
 import math,time,calendar,datetime
 import xml.etree.ElementTree as ET
 
@@ -10,7 +11,8 @@ fonts = {
 
 class WelcomeMode(Mode):
     def appStarted(mode):
-        scheme.setColor(xmlfile.find('colormode')) # fake code, change
+        scheme.setColor(settingsXML.getColorMode())
+        
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
         canvas.create_text(mode.width//2,mode.height//3,text='Welcome to Hell.',fill=scheme.getAccent1(),font=fonts['title'])
@@ -150,18 +152,9 @@ class SettingsMode(Mode):
                 scheme.setColor('dark')
 
     def handleChange(mode):
-        tree = ET.parse('settings.xml')
-        root = tree.getroot()
-        
-        if tree.find('rootdir').text != mode.rootDir:
-            tree.find('rootdir').text = mode.rootDir
-        if tree.find('lastfm').text != mode.lastfmUser:
-            tree.find('lastfm').text = mode.lastfmUser
-        if tree.find('colormode').text != scheme.getColor():
-            tree.find('colormode').text = scheme.getColor()
-
-        tree.write('settings.xml')
-        
+        settingsXML.writeRootDir(mode.rootDir)
+        settingsXML.writeLastFM(mode.lastfmUser)
+        settingsXML.writeColorMode(scheme.getColor())
 
     def keyPressed(mode,event):
         if event.key == 'x':
