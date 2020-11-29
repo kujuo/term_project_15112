@@ -1,5 +1,6 @@
 from cmu_112_graphics import *
 from design import *
+from lastfm import *
 from xml_io import *
 from pygame import mixer
 import math,datetime
@@ -166,6 +167,9 @@ class SettingsMode(Mode):
                 scheme.setColor('light')
             elif scheme.getColor() == 'light':
                 scheme.setColor('dark')
+        elif event.key == 'Space':
+            user.setUsername(mode.lastfmUser)
+            print(user.getUserInfo())
 
     def drawButtons(mode,canvas):
         canvas.create_rectangle(mode.buttons['root'][0],mode.buttons['root'][1],
