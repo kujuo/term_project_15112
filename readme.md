@@ -10,3 +10,6 @@
  *And* you get paywalled when you try to see your stats from a week ago.
  To be honest, the appeals aren't worth the cost. However, they walked
  so this app could run.
+
+ To use this application, create a last.fm API key and place it in a file
+ called "apikey.py"
