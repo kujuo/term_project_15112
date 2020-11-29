@@ -1,7 +1,7 @@
 import requests
+from apikey import *
 
 class LastFMUser(object):
-    api_key = '43a1115a43350f02986daf50d4e99a9a'
     url = 'http://ws.audioscrobbler.com/2.0'
     def __init__(self,username):
         self.username = username
