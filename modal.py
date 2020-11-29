@@ -1,7 +1,8 @@
 from cmu_112_graphics import *
 from design import *
 from xml_io import *
-import math,time,calendar,datetime
+from pygame import mixer
+import math,datetime
 import xml.etree.ElementTree as ET
 
 fonts = {
@@ -12,7 +13,7 @@ fonts = {
 class WelcomeMode(Mode):
     def appStarted(mode):
         scheme.setColor(settingsXML.getColorMode())
-        
+
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
         canvas.create_text(mode.width//2,mode.height//3,text='Welcome to Hell.',fill=scheme.getAccent1(),font=fonts['title'])
@@ -33,11 +34,7 @@ class WelcomeMode(Mode):
 
 class CheckInMode(Mode):
     def appStarted(mode):
-        # aaaaaaaaaaaa
-        # use mode. instead of mode.
-        mode.cal = calendar.month(2020,11) # bad
-        mode.current = datetime.datetime.now()
-        mode.year = mode.current.today()
+        mode.date = datetime.date.today()
 
     def timerFired(mode):
         pass
@@ -51,7 +48,7 @@ class CheckInMode(Mode):
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
-        canvas.create_text(mode.width//2,mode.height//3,text=mode.year,fill=scheme.getAccent1(),font=fonts['accent'])
+        canvas.create_text(mode.width//2,mode.height//3,text=mode.date,fill=scheme.getAccent1(),font=fonts['accent'])
 
     
 class PlayerMode(Mode):
