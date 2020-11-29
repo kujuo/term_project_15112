@@ -3,6 +3,7 @@ from apikey import *
 
 class LastFMUser(object):
     url = 'http://ws.audioscrobbler.com/2.0'
+    api_key = api_key
     def __init__(self,username):
         self.username = username
         self.headers = {
@@ -29,3 +30,5 @@ class LastFMUser(object):
     
     def getUserLovedTracks(self):
         return self.lastFMGet({'method':'user.getLovedTracks','user':self.username})
+
+user = LastFMUser('')
