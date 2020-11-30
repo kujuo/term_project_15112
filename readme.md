@@ -1,4 +1,5 @@
-# 15112 Term Project (Title TBA)
+# attune.
+## (15112 Term Project)
 ## A space for all your music, all your stats, all for you and you only
 ### Problem:
  If you're like me, you listen to music in a *lot* of places, whether
