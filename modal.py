@@ -6,7 +6,7 @@ from pygame import mixer
 import math,datetime
 
 fonts = {
-    'title':'Ubuntu 24',
+    'title':'Ubuntu 36',
     'accent':'Ubuntu 12'
 }
 
@@ -16,7 +16,7 @@ class WelcomeMode(Mode):
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
-        canvas.create_text(mode.width//2,mode.height//3,text='Welcome to Hell.',fill=scheme.getAccent1(),font=fonts['title'])
+        canvas.create_text(mode.width//2,mode.height//3,text='attune.',fill=scheme.getAccent1(),font=fonts['title'])
         canvas.create_text(mode.width//2,mode.height//2,text='press enter to... you know... enter',fill=scheme.getAccent1(),font=fonts['accent'])
         canvas.create_text(mode.width//2,mode.height//1.8,text='settings: s',fill=scheme.getAccent1(),font=fonts['accent'])
         canvas.create_text(mode.width//2,mode.height//1.65,text='help: h',fill=scheme.getAccent1(),font=fonts['accent'])
@@ -34,7 +34,42 @@ class WelcomeMode(Mode):
 
 class CheckInMode(Mode):
     def appStarted(mode):
+        mode.buttons = {
+            'type1': (mode.gridBounds(0,0)[0],mode.gridBounds(0,0)[1],
+                      mode.gridBounds(0,0)[2],mode.gridBounds(0,0)[3]),
+            'type2': (mode.gridBounds(1,0)[0],mode.gridBounds(1,0)[1],
+                      mode.gridBounds(1,0)[2],mode.gridBounds(1,0)[3]),
+            'type3': (mode.gridBounds(2,0)[0],mode.gridBounds(2,0)[1],
+                      mode.gridBounds(2,0)[2],mode.gridBounds(2,0)[3]),
+            'type4': (mode.gridBounds(3,0)[0],mode.gridBounds(3,0)[1],
+                      mode.gridBounds(3,0)[2],mode.gridBounds(3,0)[3]),
+            'type5': (mode.gridBounds(4,0)[0],mode.gridBounds(4,0)[1],
+                      mode.gridBounds(4,0)[2],mode.gridBounds(4,0)[3]),
+            'type6': (mode.gridBounds(5,0)[0],mode.gridBounds(5,0)[1],
+                      mode.gridBounds(5,0)[2],mode.gridBounds(5,0)[3]),
+        }
+        mode.textMapping = {
+            'type1':'happy',
+            'type2':'sad',
+            'type3':'numb/grey',
+            'type4':'stressed',
+            'type5':'tired/sick',
+            'type6':'energetic/awake/hype',
+        }
         mode.date = datetime.date.today()
+
+    def gridBounds(mode,row,col):
+        buttonWidth = mode.width//15
+        buttonHeight = mode.height//15
+        gridWidth = 1*buttonWidth
+        gridHeight = 6*buttonHeight
+        
+        x0 = mode.width//3 + buttonWidth * col
+        x1 = x0 + buttonWidth
+        y0 = mode.height//2 + buttonHeight * row
+        y1 = y0 + buttonHeight
+        return (x0,y0,x1,y1)
+
 
     def timerFired(mode):
         pass
@@ -45,15 +80,60 @@ class CheckInMode(Mode):
     def keyPressed(mode,event):
         if event.key == 'x':
             mode.app.setActiveMode(mode.app.welcomeMode)
+        
+
+    def drawButtons(mode,canvas):
+        canvas.create_rectangle(mode.buttons['type1'][0],mode.buttons['type1'][1],
+                                mode.buttons['type1'][2],mode.buttons['type1'][3],
+                                fill=scheme.getTypeColor(1),width=0)
+        canvas.create_rectangle(mode.buttons['type2'][0],mode.buttons['type2'][1],
+                                mode.buttons['type2'][2],mode.buttons['type2'][3],
+                                fill=scheme.getTypeColor(2),width=0)
+        canvas.create_rectangle(mode.buttons['type3'][0],mode.buttons['type3'][1],
+                                mode.buttons['type3'][2],mode.buttons['type3'][3],
+                                fill=scheme.getTypeColor(3),width=0)
+        canvas.create_rectangle(mode.buttons['type4'][0],mode.buttons['type4'][1],
+                                mode.buttons['type4'][2],mode.buttons['type4'][3],
+                                fill=scheme.getTypeColor(4),width=0)
+        canvas.create_rectangle(mode.buttons['type5'][0],mode.buttons['type5'][1],
+                                mode.buttons['type5'][2],mode.buttons['type5'][3],
+                                fill=scheme.getTypeColor(5),width=0)
+        canvas.create_rectangle(mode.buttons['type6'][0],mode.buttons['type6'][1],
+                                mode.buttons['type6'][2],mode.buttons['type6'][3],
+                                fill=scheme.getTypeColor(6),width=0)
+
+    def drawText(mode,canvas):
+        canvas.create_text(mode.buttons['type1'][2]+10,(mode.buttons['type1'][1]+mode.buttons['type1'][3])//2,
+                           text=mode.textMapping['type1'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(mode.buttons['type2'][2]+10,(mode.buttons['type2'][1]+mode.buttons['type2'][3])//2,
+                           text=mode.textMapping['type2'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(mode.buttons['type3'][2]+10,(mode.buttons['type3'][1]+mode.buttons['type3'][3])//2,
+                           text=mode.textMapping['type3'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(mode.buttons['type4'][2]+10,(mode.buttons['type4'][1]+mode.buttons['type4'][3])//2,
+                           text=mode.textMapping['type4'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(mode.buttons['type5'][2]+10,(mode.buttons['type5'][1]+mode.buttons['type5'][3])//2,
+                           text=mode.textMapping['type5'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(mode.buttons['type6'][2]+10,(mode.buttons['type6'][1]+mode.buttons['type6'][3])//2,
+                           text=mode.textMapping['type6'],font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
+        mode.drawButtons(canvas)
+        mode.drawText(canvas)
         canvas.create_text(mode.width//2,mode.height//3,text=mode.date,fill=scheme.getAccent1(),font=fonts['accent'])
+        canvas.create_text(mode.width//2,mode.height,text='press x to return',fill=scheme.getAccent1(),font=fonts['accent'],anchor='s')
 
     
 class PlayerMode(Mode):
     def appStarted(mode):
         mode.allSongs = songsXML.getAllSongs()
+        mixer.init()
 
     def timerFired(mode):
         pass
@@ -203,6 +283,9 @@ class SettingsMode(Mode):
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(50,(mode.buttons['color'][1]+mode.buttons['color'][3])//2,
                            text='toggle dark mode ( d )',font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(50,(mode.buttons['refresh'][1]+mode.buttons['refresh'][3])//2,
+                           text='refresh your music library',font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
 
     def redrawAll(mode,canvas):

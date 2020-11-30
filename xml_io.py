@@ -92,12 +92,32 @@ class UserDataXML(object):
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
     
-    def setDayColor(self,color):
-        pass
+    # add check to make sure that can only check in once a day
+    def setDayColor(self,color,date):
+        if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
+            day = ET.SubElement(self.root,'day')
+            day.attrib['date'] = date
+            day.attrib['color'] = color
+            self.tree.write(self.filename)
 
-    def addSongToDay(self,data):
-        pass
+    def addSongToDay(self,date,songTitle,songPath):
+        # don't use f strings, but can make it work with first method
+        # if self.tree.find(f"./day[@date='{date}'/song[@title='{songTitle}']") == None and self.tree.find(f"./day[@date='{date}'/song[@path='{songPath}']") == None:
+        if songPath not in ET.tostring(self.root.getchildren()[len(self.root.getchildren())-1],encoding='utf8').decode('utf8'):
+            song = ET.SubElement(self.tree.find(f"./day[@date='{date}']"),'song')
+            song.set('title',songTitle)
+            song.set('path',songPath)
+            if song.get('playcount') != None:
+                song.set('playcount',song.get('playcount'))
+            else:
+                song.set('playcount','1')
+        else:
+            song = self.root.find(".day/song[@path='"+songPath+"']")
+            count = int(song.attrib['playcount']) + 1
+            song.attrib['playcount'] = str(count)
+        self.tree.write(self.filename)
 
 
 settingsXML = SettingsXML('settings.xml')
 songsXML = SongsXML('songdata.xml')
+userXML = UserDataXML('userdata.xml')
