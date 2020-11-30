@@ -4,7 +4,6 @@ from lastfm import *
 from xml_io import *
 from pygame import mixer
 import math,datetime
-import xml.etree.ElementTree as ET
 
 fonts = {
     'title':'Ubuntu 24',
@@ -54,13 +53,13 @@ class CheckInMode(Mode):
     
 class PlayerMode(Mode):
     def appStarted(mode):
-        pass
+        mode.allSongs = songsXML.getAllSongs()
 
     def timerFired(mode):
         pass
 
     def mousePressed(mode,event):
-        pass
+        print(mode.allSongs)
 
     def keyPressed(mode,event):
         pass
@@ -122,9 +121,11 @@ class SettingsMode(Mode):
                                mode.width//1.5+5,mode.height//2+5),
             'color': (mode.width//1.5-5,3*mode.height//4-5,
                                mode.width//1.5+5,3*mode.height//4+5),
+            'refresh': (mode.width//1.5-5,3*mode.height//3.5-5,
+                               mode.width//1.5+5,3*mode.height//3.5+5),
         }
-        mode.rootDir = ''
-        mode.lastfmUser = ''
+        mode.rootDir = settingsXML.getRootDir()
+        mode.lastfmUser = settingsXML.getLastFM()
 
     def rootClicked(mode,x,y):
         return (mode.buttons['root'][0] <= x <= mode.buttons['root'][2] and
@@ -138,6 +139,10 @@ class SettingsMode(Mode):
         return (mode.buttons['color'][0] <= x <= mode.buttons['color'][2] and
                 mode.buttons['color'][1] <= y <= mode.buttons['color'][3])
 
+    def refreshClicked(mode,x,y):
+        return (mode.buttons['refresh'][0] <= x <= mode.buttons['refresh'][2] and
+                mode.buttons['refresh'][1] <= y <= mode.buttons['refresh'][3])
+
     def mousePressed(mode,event):
         if mode.rootClicked(event.x,event.y):
             mode.rootDir = mode.getUserInput('enter path to root music directory')
@@ -148,11 +153,15 @@ class SettingsMode(Mode):
                 scheme.setColor('light')
             elif scheme.getColor() == 'light':
                 scheme.setColor('dark')
+        elif mode.refreshClicked(event.x,event.y):
+            mode.handleChange()
 
     def handleChange(mode):
         settingsXML.writeRootDir(mode.rootDir)
         settingsXML.writeLastFM(mode.lastfmUser)
         settingsXML.writeColorMode(scheme.getColor())
+        # songsXML.addAllSongs()
+        songsXML.refreshLibrary(mode.rootDir)
 
     def keyPressed(mode,event):
         if event.key == 'x':
@@ -167,9 +176,11 @@ class SettingsMode(Mode):
                 scheme.setColor('light')
             elif scheme.getColor() == 'light':
                 scheme.setColor('dark')
-        elif event.key == 'Space':
-            user.setUsername(mode.lastfmUser)
-            print(user.getUserInfo())
+        elif event.key == 'r':
+            mode.handleChange()
+            # songsXML.addAllSongs()
+            # for song in songsXML.getAllSongs():
+            #     print(song in songsXML.allSongs, song.title, song.path)
 
     def drawButtons(mode,canvas):
         canvas.create_rectangle(mode.buttons['root'][0],mode.buttons['root'][1],
@@ -180,6 +191,9 @@ class SettingsMode(Mode):
                                 fill=scheme.getAccent1(),width=0)
         canvas.create_rectangle(mode.buttons['color'][0],mode.buttons['color'][1],
                                 mode.buttons['color'][2],mode.buttons['color'][3],
+                                fill=scheme.getAccent1(),width=0)
+        canvas.create_rectangle(mode.buttons['refresh'][0],mode.buttons['refresh'][1],
+                                mode.buttons['refresh'][2],mode.buttons['refresh'][3],
                                 fill=scheme.getAccent1(),width=0)
     
     def drawText(mode,canvas):

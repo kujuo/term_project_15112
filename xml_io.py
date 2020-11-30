@@ -1,4 +1,7 @@
 import xml.etree.ElementTree as ET
+import os
+
+from playlist import *
 
 class SettingsXML(object):
     def __init__(self,filename):
@@ -30,4 +33,62 @@ class SettingsXML(object):
     def getColorMode(self):
         return self.tree.find('colormode').text
 
+class SongsXML(object):
+    def __init__(self,filename):
+        self.filename = filename
+        self.tree = ET.parse(filename)
+        self.root = self.tree.getroot()
+        self.filetypes = ['flac','ogg']
+        self.allSongs = set()
+
+    def addAllSongs(self):
+        # should be a list of song objects
+        for child in self.root.iter('song'):
+            songObject = Song(child.getchildren()[0].text.strip(),child.getchildren()[1].text.strip())
+            self.allSongs.add(songObject)
+
+    def getAllSongs(self):
+        return list(self.allSongs)
+
+    def refreshLibrary(self,rootdir):
+        existingSongs = ET.tostring(self.root,encoding='utf8').decode('utf8')
+        self.refreshLibraryHelper(rootdir,existingSongs)
+
+    def refreshLibraryHelper(self,rootdir,existingSongs):
+        # copied from course notes: https://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html
+        # Base Case: a file. Just print the path name.
+        if os.path.isfile(rootdir):
+            extension = os.path.split(rootdir)[1].split('.')[1]
+            if extension in self.filetypes:
+                songTitle = os.path.split(rootdir)[1].split('.')[0].strip()
+                songPath = rootdir.strip()
+                # perhaps not the most elegant solution but it works.
+                # converts the xml file to a string and makes sure the path and
+                # title of the song aren't in the file's string
+                if songTitle not in existingSongs and songPath not in existingSongs:
+                    song = ET.SubElement(self.root,'song')
+                    song.set('title',songTitle)
+                    song.set('path',songPath)
+
+                    self.tree.write(self.filename)
+        else:
+            # Recursive Case: a folder. Iterate through its files and folders.
+            for filename in os.listdir(rootdir):
+                self.refreshLibraryHelper(rootdir + '/' + filename,existingSongs)
+
+
+class UserDataXML(object):
+    def __init__(self,filename):
+        self.filename = filename
+        self.tree = ET.parse(filename)
+        self.root = self.tree.getroot()
+    
+    def setDayColor(self,color):
+        pass
+
+    def addSongToDay(self,data):
+        pass
+
+
 settingsXML = SettingsXML('settings.xml')
+songsXML = SongsXML('songdata.xml')

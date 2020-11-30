@@ -1,7 +1,14 @@
 from dataclasses import make_dataclass
 
 
-Song = make_dataclass('Song',['title','path'])
+# Song = make_dataclass('Song',['title','path'])
+class Song(object):
+    def __init__(self,title,path):
+        self.title = title
+        self.path = path
+    
+    def __hash__(self):
+        return hash((self.title,self.path))
 
 class Playlist(object):
     numPlaylists = 0
