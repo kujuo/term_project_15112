@@ -69,12 +69,21 @@ class SongsXML(object):
                     song = ET.SubElement(self.root,'song')
                     song.set('title',songTitle)
                     song.set('path',songPath)
-
+                    if song.get('playcount') != None:
+                        song.set('playcount',song.get('playcount'))
+                    else:
+                        song.set('playcount','0')
                     self.tree.write(self.filename)
         else:
             # Recursive Case: a folder. Iterate through its files and folders.
             for filename in os.listdir(rootdir):
                 self.refreshLibraryHelper(rootdir + '/' + filename,existingSongs)
+
+    def incrementPlayCount(self,songTitle,songPath):
+        song = self.root.find("./song[@path='"+songPath+"']")
+        count = int(song.attrib['playcount']) + 1
+        song.attrib['playcount'] = str(count)
+        self.tree.write(self.filename)
 
 
 class UserDataXML(object):

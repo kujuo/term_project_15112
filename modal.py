@@ -178,9 +178,7 @@ class SettingsMode(Mode):
                 scheme.setColor('dark')
         elif event.key == 'r':
             mode.handleChange()
-            # songsXML.addAllSongs()
-            # for song in songsXML.getAllSongs():
-            #     print(song in songsXML.allSongs, song.title, song.path)
+
 
     def drawButtons(mode,canvas):
         canvas.create_rectangle(mode.buttons['root'][0],mode.buttons['root'][1],
