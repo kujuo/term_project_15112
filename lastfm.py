@@ -31,4 +31,7 @@ class LastFMUser(object):
     def getUserLovedTracks(self):
         return self.lastFMGet({'method':'user.getLovedTracks','user':self.username})
 
+    def getRecentTracks(self):
+        return self.lastFMGet({'method':'user.getRecentTracks','user':self.username})
+
 user = LastFMUser('')
