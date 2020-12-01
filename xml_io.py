@@ -131,6 +131,6 @@ class UserDataXML(object):
         self.tree.write(self.filename)
 
 
-settingsXML = SettingsXML('settings.xml')
-songsXML = SongsXML('songdata.xml')
-userXML = UserDataXML('userdata.xml')
+settingsXML = SettingsXML('./xml_files/settings.xml')
+songsXML = SongsXML('./xml_files/songdata.xml')
+userXML = UserDataXML('./xml_files/userdata.xml')

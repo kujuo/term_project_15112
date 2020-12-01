@@ -1,4 +1,7 @@
-
+fonts = {
+    'title':'Ubuntu 36',
+    'accent':'Ubuntu 12'
+}
 class ColorScheme(object):
     fills = {'dark':(18,18,18),'light':(215,253,255)}
     accent1 = {'dark':(20,255,236),'light':(148,40,142)}
