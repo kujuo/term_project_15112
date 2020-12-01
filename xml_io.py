@@ -3,6 +3,13 @@ import os
 
 from playlist import *
 
+# referenced the following websites for XML IO syntax,
+# and tips on handling XML files. No code was copied.
+# https://www.geeksforgeeks.org/reading-and-writing-xml-files-in-python/
+# https://docs.python.org/3/library/xml.etree.elementtree.html
+# https://www.datacamp.com/community/tutorials/python-xml-elementtree
+# https://www.tutorialspoint.com/python/python_xml_processing.htm
+
 class SettingsXML(object):
     def __init__(self,filename):
         self.filename = filename
@@ -39,23 +46,23 @@ class SongsXML(object):
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
         self.filetypes = ['flac','ogg']
-        self.allSongs = set()
+        self.allSongs = []
 
     def addAllSongs(self):
         # should be a list of song objects
         for child in self.root.iter('song'):
-            songObject = Song(child.getchildren()[0].text.strip(),child.getchildren()[1].text.strip())
-            self.allSongs.add(songObject)
+            songObject = Song(child.attrib['title'].strip(),child.attrib['path'].strip())
+            self.allSongs.append(songObject)
 
     def getAllSongs(self):
-        return list(self.allSongs)
+        return self.allSongs
 
     def refreshLibrary(self,rootdir):
         existingSongs = ET.tostring(self.root,encoding='utf8').decode('utf8')
         self.refreshLibraryHelper(rootdir,existingSongs)
 
     def refreshLibraryHelper(self,rootdir,existingSongs):
-        # copied from course notes: https://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html
+        # modified from course notes: https://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html
         # Base Case: a file. Just print the path name.
         if os.path.isfile(rootdir):
             extension = os.path.split(rootdir)[1].split('.')[1]
@@ -84,6 +91,12 @@ class SongsXML(object):
         count = int(song.attrib['playcount']) + 1
         song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
+
+class PlaylistsXML(object):
+    def __init__(self,filename):
+        self.filename = filename
+        self.tree = ET.parse(filename)
+        self.root = self.tree.getroot()
 
 
 class UserDataXML(object):
