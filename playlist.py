@@ -20,6 +20,9 @@ class Playlist(object):
     def addSong(self,song):
         self.songs.append(song)
     
+    def addSongs(self,songs):
+        self.songs += songs
+    
     def incrementPlaylists():
         Playlist.numPlaylists += 1
 
@@ -31,3 +34,6 @@ class Playlist(object):
     
     def addParent(self,parent):
         self.parent = parent
+    
+    def removeAllSongs(self):
+        self.songs = []
