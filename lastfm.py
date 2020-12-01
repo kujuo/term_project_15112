@@ -1,6 +1,10 @@
 import requests
 from apikey import *
 
+# referenced these websites for help on syntax/methods
+# https://www.dataquest.io/blog/last-fm-api-python/
+# https://www.last.fm/api/
+
 class LastFMUser(object):
     url = 'http://ws.audioscrobbler.com/2.0'
     api_key = api_key
