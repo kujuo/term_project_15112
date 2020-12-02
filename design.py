@@ -5,6 +5,8 @@ fonts = {
 class ColorScheme(object):
     fills = {'dark':(18,18,18),'light':(215,253,255)}
     accent1 = {'dark':(20,255,236),'light':(148,40,142)}
+    accent2 = {'dark':(255,51,204),'light':(255,255,0)}
+
     types = {
         'type1':(255,250,0),
         'type2':(0,0,200),
@@ -18,6 +20,7 @@ class ColorScheme(object):
         self.color = color
         self.fill = ColorScheme.fills[color]
         self.accent1 = ColorScheme.accent1[color]
+        self.accent2 = ColorScheme.accent2[color]
     
     def rgbString(self, r, g, b):
         # Don't worry about the :02x part, but for the curious,
@@ -37,6 +40,9 @@ class ColorScheme(object):
 
     def getAccent1(self):
         return self.rgbString(self.accent1[0],self.accent1[1],self.accent1[2])
+
+    def getAccent2(self):
+        return self.rgbString(self.accent2[0],self.accent2[1],self.accent2[2])
 
     def getTypeColor(self,typeNum):
         typeColor = self.types[f'type{typeNum}']
