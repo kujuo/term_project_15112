@@ -41,8 +41,9 @@ class SettingsXML(object):
         return self.tree.find('colormode').text
 
 class SongsXML(object):
-    def __init__(self,filename):
+    def __init__(self,filename,rootdir):
         self.filename = filename
+        self.rootdir = rootdir
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
         self.filetypes = ['flac','ogg']
@@ -60,9 +61,33 @@ class SongsXML(object):
     def getAllSongs(self):
         return self.allSongs
 
-    def refreshLibrary(self,rootdir):
+    def getAlbumSongs(self,album,artist):
+        songs = []
+        albumPath = "/" + self.rootdir + "/" + artist + "/" + album + "/"
+        for song in self.root.findall('./song/[@path="' + albumPath + '"]'):
+            songObject = Song(song.attrib['title'],
+                              artist,album,
+                              song.attrib['path'])
+            songs.append(songObject)
+        return songs
+    
+    def getArtistSongs(self,artist):
+        songs = []
+        artistPath = "/" + self.rootdir + "/" + artist + "/"
+        for song in self.root.findall('./song/[@path="' + albumPath + '"]'):
+            songObject = Song(song.attrib['title'],
+                              artist,album,
+                              song.attrib['path'])
+            songs.append(songObject)
+        return songs
+    
+    def getArtistAlbums(self,artist):
+        albums = []
+
+
+    def refreshLibrary(self):
         existingSongs = ET.tostring(self.root,encoding='utf8').decode('utf8')
-        self.refreshLibraryHelper(rootdir,existingSongs)
+        self.refreshLibraryHelper(self.rootdir,existingSongs)
 
     def refreshLibraryHelper(self,rootdir,existingSongs):
         # modified from course notes: https://www.cs.cmu.edu/~112/notes/notes-recursion-part2.html
@@ -95,7 +120,7 @@ class SongsXML(object):
                 self.refreshLibraryHelper(rootdir + '/' + filename,existingSongs)
 
     def incrementPlayCount(self,songTitle,songPath):
-        song = self.root.find("./song[@path='"+songPath+"']")
+        song = self.root.find('./song[@path="'+songPath+'"]')
         count = int(song.attrib['playcount']) + 1
         song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
@@ -115,6 +140,7 @@ class UserDataXML(object):
     
     # add check to make sure that can only check in once a day
     def setDayColor(self,color,date):
+        date = str(date)
         if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
             day = ET.SubElement(self.root,'day')
             day.attrib['date'] = date
@@ -122,10 +148,20 @@ class UserDataXML(object):
             self.tree.write(self.filename)
 
     def addSongToDay(self,date,songObject):
+        date = str(date)
+        title = songObject.title
+        path = songObject.path
         # don't use f strings, but can make it work with first method
         # if self.tree.find(f"./day[@date='{date}'/song[@title='{songTitle}']") == None and self.tree.find(f"./day[@date='{date}'/song[@path='{songPath}']") == None:
-        if songPath not in ET.tostring(self.root.getchildren()[len(self.root.getchildren())-1],encoding='utf8').decode('utf8'):
-            song = ET.SubElement(self.tree.find(f"./day[@date='{date}']"),'song')
+        if self.tree.find('./day[@date="'+date+'"]') == None:
+        # if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
+            print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
+            day = ET.SubElement(self.root,'day')
+            day.attrib['date'] = date
+            print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
+        if self.tree.find('./day[@date="'+date+'"]/song[@title="'+title+'"]') == None and self.tree.find('./day[@date="'+date+'"]/song[@path="'+path+'"]') == None:
+        # if songObject.path not in ET.tostring(self.root.getchildren()[len(self.root.getchildren())-1],encoding='utf8').decode('utf8'):
+            song = ET.SubElement(self.tree.find('./day[@date="'+date+'"]'),'song')
             song.set('title',songObject.title)
             song.set('artist',songObject.artist)
             song.set('album',songObject.album)
@@ -135,12 +171,12 @@ class UserDataXML(object):
             else:
                 song.set('playcount','1')
         else:
-            song = self.root.find(".day/song[@path='"+songPath+"']")
+            song = self.root.find('.day/song[@path="'+songPath+'"]')
             count = int(song.attrib['playcount']) + 1
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
 
 
 settingsXML = SettingsXML('./xml_files/settings.xml')
-songsXML = SongsXML('./xml_files/songdata.xml')
+songsXML = SongsXML('./xml_files/songdata.xml',settingsXML.getRootDir())
 userXML = UserDataXML('./xml_files/userdata.xml')

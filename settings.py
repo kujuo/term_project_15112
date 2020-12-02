@@ -53,7 +53,7 @@ class SettingsMode(Mode):
         settingsXML.writeRootDir(mode.rootDir)
         settingsXML.writeLastFM(mode.lastfmUser)
         settingsXML.writeColorMode(scheme.getColor())
-        songsXML.refreshLibrary(mode.rootDir)
+        songsXML.refreshLibrary()
 
     def keyPressed(mode,event):
         if event.key == 'x':
