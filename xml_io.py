@@ -51,7 +51,10 @@ class SongsXML(object):
     def addAllSongs(self):
         # should be a list of song objects
         for child in self.root.iter('song'):
-            songObject = Song(child.attrib['title'].strip(),child.attrib['path'].strip())
+            songObject = Song(child.attrib['title'].strip(),
+                              child.attrib['artist'].strip(),
+                              child.attrib['album'].strip(),
+                              child.attrib['path'].strip())
             self.allSongs.append(songObject)
 
     def getAllSongs(self):
@@ -68,6 +71,9 @@ class SongsXML(object):
             extension = os.path.split(rootdir)[1].split('.')[1]
             if extension in self.filetypes:
                 songTitle = os.path.split(rootdir)[1].split('.')[0].strip()
+                splitPath = os.path.split(rootdir)[0].split('/')
+                songArtist = splitPath[len(splitPath)-2]
+                songAlbum = splitPath[len(splitPath)-1]
                 songPath = rootdir.strip()
                 # perhaps not the most elegant solution but it works.
                 # converts the xml file to a string and makes sure the path and
@@ -76,6 +82,8 @@ class SongsXML(object):
                     song = ET.SubElement(self.root,'song')
                     song.set('title',songTitle)
                     song.set('path',songPath)
+                    song.set('artist',songArtist)
+                    song.set('album',songAlbum)
                     if song.get('playcount') != None:
                         song.set('playcount',song.get('playcount'))
                     else:
@@ -113,13 +121,15 @@ class UserDataXML(object):
             day.attrib['color'] = color
             self.tree.write(self.filename)
 
-    def addSongToDay(self,date,songTitle,songPath):
+    def addSongToDay(self,date,songObject):
         # don't use f strings, but can make it work with first method
         # if self.tree.find(f"./day[@date='{date}'/song[@title='{songTitle}']") == None and self.tree.find(f"./day[@date='{date}'/song[@path='{songPath}']") == None:
         if songPath not in ET.tostring(self.root.getchildren()[len(self.root.getchildren())-1],encoding='utf8').decode('utf8'):
             song = ET.SubElement(self.tree.find(f"./day[@date='{date}']"),'song')
-            song.set('title',songTitle)
-            song.set('path',songPath)
+            song.set('title',songObject.title)
+            song.set('artist',songObject.artist)
+            song.set('album',songObject.album)
+            song.set('path',songObject.path)
             if song.get('playcount') != None:
                 song.set('playcount',song.get('playcount'))
             else:
