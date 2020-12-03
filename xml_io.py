@@ -60,6 +60,18 @@ class SongsXML(object):
 
     def getAllSongs(self):
         return self.allSongs
+    
+    # reference for lambda functions:
+    # https://www.w3schools.com/python/python_lambda.asp
+    def getRankedSongs(self):
+        topSongs = []
+        playlist = Playlist('Top Songs',None)
+        for child in self.root.getchildren():
+            if child.attrib['playcount'] != '0':
+                topSongs.append(child.attrib)
+        topSongs.sort(key=(lambda d: d['playcount']),reverse=True)
+        playlist.addSongsDict(topSongs)
+        return playlist
 
     def getAlbumSongs(self,album,artist):
         songs = []
@@ -119,11 +131,17 @@ class SongsXML(object):
             for filename in os.listdir(rootdir):
                 self.refreshLibraryHelper(rootdir + '/' + filename,existingSongs)
 
-    def incrementPlayCount(self,songTitle,songPath):
+    def incrementPlayCount(self,songPath):
         song = self.root.find('./song[@path="'+songPath+'"]')
         count = int(song.attrib['playcount']) + 1
         song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
+
+    def getPlayCount(self,song):
+        title = song.title
+        path = song.path
+        count = self.root.find('./song[@path="'+path+'"]').attrib['playcount']
+        return int(count)
 
 class PlaylistsXML(object):
     def __init__(self,filename):
@@ -175,6 +193,22 @@ class UserDataXML(object):
             count = int(song.attrib['playcount']) + 1
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
+
+    def getSongsForDayType(self,dayType):
+        daySongs = []
+        for day in self.root.getchildren(): # child is a day
+            if day.attrib['type'] == dayType:
+                songs = day.getchildren()
+                for song in songs:
+                    if song not in daySongs:
+                        daySongs.append(song.attrib)
+                    else:
+                        daySongs
+        daySongs.sort(key=(lambda d: d['playcount']),reverse=True)
+        playlist.addSongsDict(topSongs)
+        return playlist
+                    
+        
 
 
 settingsXML = SettingsXML('./xml_files/settings.xml')
