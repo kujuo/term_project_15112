@@ -3,14 +3,27 @@ from dataclasses import make_dataclass
 
 # Song = make_dataclass('Song',['title','path'])
 class Song(object):
-    def __init__(self,title,artist,album,path):
+    def __init__(self,title,artist,album,path,playcount=0):
         self.title = title
         self.artist = artist
         self.album = album
         self.path = path
+        self.playcount = playcount
     
     def __hash__(self):
         return hash((self.title,self.artist,self.album,self.path))
+
+    def __repr__(self):
+        return self.title + ", " + self.path
+
+    # I think this is dead code
+    # TODO: delete
+    def getDict(self):
+        return {'title': self.title,
+                'artist': self.artist,
+                'album': self.album,
+                'playcount': self.playcount}
+
 
 class Playlist(object):
     numPlaylists = 0
@@ -24,6 +37,14 @@ class Playlist(object):
     
     def addSongs(self,songs):
         self.songs += songs
+    
+    def addSongsDict(self,songDicts):
+        for songDict in songDicts:
+            self.songs.append(Song(songDict['title'],songDict['artist'],
+                                   songDict['album'],songDict['path']))
+
+    def inPlaylist(self,song):
+        return song in self.songs
     
     def incrementPlaylists():
         Playlist.numPlaylists += 1
