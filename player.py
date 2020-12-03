@@ -1,6 +1,7 @@
 from cmu_112_graphics import *
 from xml_io import *
 from design import *
+from lastfm import *
 from pygame import mixer
 import random
 
@@ -14,6 +15,10 @@ class PlayerMode(Mode):
         mode.buttons = {
             'play': (mode.width//2-20,mode.height//1.5-20,
                      mode.width//2+20,mode.height//1.5+20),
+            'ignore': (mode.width//3-20,mode.height//3-20,
+                       mode.width//3+20,mode.height//3+20),
+            'focus': (2*mode.width//3-20,mode.height//3-20,
+                       2*mode.width//3+20,mode.height//3+20),
         }
         
         mode.loaded = False
@@ -22,6 +27,9 @@ class PlayerMode(Mode):
         mode.skipCount = 0
         mode.volume = 1
         mode.nowPlaying = None
+        mode.nowPlayingImage = None
+        mode.ignorePlay = False
+        mode.focusMode = False
         mode.sound = None
         mode.queuePos = 0
         mode.playlists = {
@@ -43,13 +51,18 @@ class PlayerMode(Mode):
             numsongs = mode.loadQueue(songsXML.getAllSongs())
 
     def handleNextSong(mode):
-        songsXML.incrementPlayCount(mode.nowPlaying.title,mode.nowPlaying.path)
-        userXML.addSongToDay(datetime.date.today(),mode.nowPlaying)
+        if not mode.ignorePlay:
+            songsXML.incrementPlayCount(mode.nowPlaying.path)
+            userXML.addSongToDay(datetime.date.today(),mode.nowPlaying)
+        else:
+            mode.ignorePlay = False
         mode.queuePos += 1
         mode.loadSong()
 
     def loadSong(mode):
         mode.nowPlaying = mode.queue.getSongs()[mode.queuePos]
+        coverURL = user.getAlbumCoverURL(mode.nowPlaying.album,mode.nowPlaying.artist)
+        mode.nowPlayingImage = mode.loadImage(coverURL)
         mixer.music.load(mode.nowPlaying.path)
         mixer.music.play()
         mode.sound = mixer.Sound(mode.nowPlaying.path)
@@ -113,11 +126,19 @@ class PlayerMode(Mode):
             canvas.create_rectangle(100,100,100+mixer.music.get_pos()//1000,105,fill=scheme.getAccent2(),width=0)
 
     def drawButtons(mode,canvas):
-        canvas.create_rectangle(mode.buttons['play'][0],mode.buttons['play'][1],
-                                mode.buttons['play'][2],mode.buttons['play'][3],
-                                fill=scheme.getAccent1(),width=0)
+        for button in mode.buttons:
+            canvas.create_rectangle(mode.buttons[button][0],
+                                    mode.buttons[button][1],
+                                    mode.buttons[button][2],
+                                    mode.buttons[button][3],
+                                    fill=scheme.getAccent1(),width=0)
+
+    def drawSongCover(mode,canvas):
+        if mode.nowPlayingImage != None:
+            canvas.create_image(250,250,image=ImageTk.PhotoImage(mode.nowPlayingImage))
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
         mode.drawButtons(canvas)
         mode.drawStatusBar(canvas)
+        mode.drawSongCover(canvas)
