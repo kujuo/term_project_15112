@@ -22,6 +22,8 @@ class ColorScheme(object):
         self.accent1 = ColorScheme.accent1[color]
         self.accent2 = ColorScheme.accent2[color]
     
+    # copied from graphics course notes
+    # https://www.cs.cmu.edu/~112/notes/notes-graphics.html
     def rgbString(self, r, g, b):
         # Don't worry about the :02x part, but for the curious,
         # it says to use hex (base 16) with two digits.
