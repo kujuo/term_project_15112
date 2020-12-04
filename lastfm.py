@@ -36,8 +36,13 @@ class LastFMUser(object):
         albumInfo = str(self.getAlbumInfo(album,artist))
         tree = ET.fromstring(albumInfo)
         if tree.find('./album/image[@size="large"]') != None:
-            return tree.find('./album/image[@size="large"]').text
+            if tree.find('./album/image[@size="large"]').text != None:
+                return tree.find('./album/image[@size="large"]').text
+            else:
+                print('album cover not found for '+album)
+                return 'default.png'
         else:
+            print('album cover not found for '+album)
             return 'default.png'
 
     def getArtistTopAlbums(self,artist):
