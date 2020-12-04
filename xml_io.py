@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import os
+import datetime
 
 from playlist import *
 
@@ -157,28 +158,60 @@ class UserDataXML(object):
         self.root = self.tree.getroot()
     
     # add check to make sure that can only check in once a day
-    def setDayColor(self,color,date):
+    def setDayType(self,dayType,date):
         date = str(date)
         if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
             day = ET.SubElement(self.root,'day')
             day.attrib['date'] = date
-            day.attrib['color'] = color
-            self.tree.write(self.filename)
+            day.attrib['type'] = dayType
+        else:
+            day = self.root.find('.day[@date="'+date+'"]')
+            day.attrib['type'] = dayType
+        self.tree.write(self.filename)
+    
+    def setDayTime(self,dayTime,date):
+        date = str(date)
+        if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
+            day = ET.SubElement(self.root,'day')
+            day.attrib['date'] = date
+            day.attrib['time'] = dayTime
+        else:
+            day = self.root.find('.day[@date="'+date+'"]')
+            day.attrib['time'] = dayTime
+        self.tree.write(self.filename)
+    
+    def getSongScore(self,currTime,song):
+        dHours = abs(int(currTime)//100 - int(song['time'])//100)
+        dMinutes = abs(int(currTime)%100 - int(song['time'])%100)
+        dTime = datetime.timedelta(
+            days=0,
+            hours=dHours,
+            minutes=dMinutes
+        )
+        # # float from 0 to 23.59
+        # hrs = dayTime//100
+        # mins = dayTime%100
+        # avgHrs = int(song['time'])//100
+        # avgMins = int(song['time'])%100
+        playcount = int(song['playcount'])
+        # if abs(avgHrs - hrs) + abs(avgMins - mins) != 0:
+        print(playcount/(dTime.seconds+1))
+        return playcount/(dTime.seconds+1)
+        # else:
+        #     return playcount*10
+        # return 10
+
 
     def addSongToDay(self,date,songObject):
         date = str(date)
         title = songObject.title
         path = songObject.path
-        # don't use f strings, but can make it work with first method
-        # if self.tree.find(f"./day[@date='{date}'/song[@title='{songTitle}']") == None and self.tree.find(f"./day[@date='{date}'/song[@path='{songPath}']") == None:
         if self.tree.find('./day[@date="'+date+'"]') == None:
-        # if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
             print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
             day = ET.SubElement(self.root,'day')
             day.attrib['date'] = date
             print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
         if self.tree.find('./day[@date="'+date+'"]/song[@title="'+title+'"]') == None and self.tree.find('./day[@date="'+date+'"]/song[@path="'+path+'"]') == None:
-        # if songObject.path not in ET.tostring(self.root.getchildren()[len(self.root.getchildren())-1],encoding='utf8').decode('utf8'):
             song = ET.SubElement(self.tree.find('./day[@date="'+date+'"]'),'song')
             song.set('title',songObject.title)
             song.set('artist',songObject.artist)
@@ -194,22 +227,39 @@ class UserDataXML(object):
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
 
-    def getSongsForDayType(self,dayType):
+    # TODO: this is uhh really inefficient O(n^2), must be a better way
+    def getSongsForDayType(self,dayType,currTime):
         daySongs = []
+        result = []
         for day in self.root.getchildren(): # child is a day
             if day.attrib['type'] == dayType:
                 songs = day.getchildren()
                 for song in songs:
-                    if song not in daySongs:
-                        daySongs.append(song.attrib)
-                    else:
-                        daySongs
-        daySongs.sort(key=(lambda d: d['playcount']),reverse=True)
-        playlist.addSongsDict(topSongs)
-        return playlist
-                    
-        
+                    song.attrib['time'] = day.attrib['time']
+                    daySongs.append(song.attrib)
+        i = 0
+        while i <= len(daySongs) - 1:
+            j = i + 1
+            while j < len(daySongs):
+                print(i,j)
+                if daySongs[i]['path'] == daySongs[j]['path']:
+                    print('in here')
+                    iCount = int(daySongs[i]['playcount'])
+                    iCount += int(daySongs[j]['playcount'])
 
+                    iTime = int(daySongs[i]['time'])
+                    jTime = int(daySongs[j]['time'])
+                    avgTime = (iTime+jTime)//2
+                    daySongs[i]['time'] = str(avgTime)
+                    daySongs[i]['playcount'] = str(iCount)
+                    daySongs.pop(j)
+                else:
+                    print('not in here')
+                j += 1
+            daySongs[i]['score'] = self.getSongScore(currTime,daySongs[i])
+            i += 1
+        daySongs.sort(key=(lambda d: d['score']),reverse=True)
+        return daySongs
 
 settingsXML = SettingsXML('./xml_files/settings.xml')
 songsXML = SongsXML('./xml_files/songdata.xml',settingsXML.getRootDir())

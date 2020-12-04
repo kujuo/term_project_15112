@@ -1,6 +1,11 @@
 from cmu_112_graphics import *
 from design import *
+from xml_io import *
 import datetime
+
+# reference for python datetime module:
+# https://www.w3schools.com/python/python_datetime.asp
+# https://docs.python.org/3/library/datetime.html
 
 class CheckInMode(Mode):
     def appStarted(mode):
@@ -27,6 +32,8 @@ class CheckInMode(Mode):
             'type6':'energetic/awake/hype',
         }
         mode.date = datetime.date.today()
+        mode.sessionTime = (datetime.datetime.now().strftime('%H') +
+                            datetime.datetime.now().strftime('%M'))
 
     def gridBounds(mode,row,col):
         buttonWidth = mode.width//15
@@ -50,7 +57,9 @@ class CheckInMode(Mode):
     def keyPressed(mode,event):
         if event.key == 'x':
             mode.app.setActiveMode(mode.app.welcomeMode)
-        
+        elif event.key in '123456':
+            userXML.setDayType('type'+event.key,mode.date)
+            userXML.setDayTime(mode.sessionTime,mode.date)
 
     def drawButtons(mode,canvas):
         canvas.create_rectangle(mode.buttons['type1'][0],mode.buttons['type1'][1],
