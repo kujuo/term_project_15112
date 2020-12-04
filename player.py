@@ -111,6 +111,8 @@ class PlayerMode(Mode):
             mode.loadShuffledQueue()
             mode.queuePos = 0
             mode.loadSong()
+        elif event.key == 'x':
+            mode.app.setActiveMode(mode.app.welcomeMode)
 
     def timerFired(mode):
         if mode.sound != None:
