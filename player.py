@@ -40,6 +40,8 @@ class PlayerMode(Mode):
                         mode.width//1.5+5,120),
             'today':(mode.width//1.5-5,130,
                      mode.width//1.5+5,140),
+            'build':(mode.width//1.5-5,150,
+                     mode.width//1.5+5,160),
         }
         # buttons in the player screen
         mode.pButtons = {
@@ -62,6 +64,7 @@ class PlayerMode(Mode):
         mode.lastSync = settingsXML.getLastCloudSync()
         settingsXML.writeLastCloudSync(int(time.time()))
         songsXML.refreshLibraryFromCloud(user.getRecentTracks(mode.lastSync)) #TODO: testing the other TODO
+        userXML.addSongsFromCloud(user.getRecentTracks(mode.lastSync))
 
 # mouse pressed functions
     def queueButtonClicked(mode,button,x,y):
@@ -124,6 +127,23 @@ class PlayerMode(Mode):
                 pass
             elif key == '5':
                 mode.queueTodayPlaylist()
+            elif key == '6':
+                while True:
+                    query = mode.getUserInput('enter song title, enter x when done')
+                    if query == 'x':
+                        mode.selectQueueMode = False
+                        break
+                    result = songsXML.getSongTitleMatches(query)
+                    if result != None:
+                        print(result)
+                        if len(result) == 1:
+                            mode.queue.addSong(result[0])
+                        else:
+                            selection = mode.getUserInput('choose song')
+                            mode.queue.addSong(result[int(selection)])
+                # build queue mode
+                # include save queue as playlist button
+                # also write playlists to xml file
 
     def handleSpaceKey(mode):
         if not mode.selectQueueMode:
@@ -291,6 +311,9 @@ class PlayerMode(Mode):
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(50,(mode.qButtons['today'][1]+mode.qButtons['today'][3])//2,
                            text="today's playlist ( 5 )",font=fonts['accent'],
+                           fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(50,(mode.qButtons['build'][1]+mode.qButtons['build'][3])//2,
+                           text="build queue ( 6 )",font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
     
     def drawQueuesForSelectionButtons(mode,canvas):
