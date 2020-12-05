@@ -8,7 +8,8 @@ class DataMode(Mode):
         mode.topSongs = songsXML.getRankedSongs().getSongs()[:11]
         mode.images = []
         mode.loadImages()
-        mode.currentPosition = 0
+        mode.viewMode = ''
+        # mode.currentPosition = 0
 
     def timerFired(mode):
         pass
@@ -18,8 +19,12 @@ class DataMode(Mode):
 
     def keyPressed(mode,event):
         if event.key == 'y':
-            # print(mode.topSongs)
+            print(mode.topSongs)
             print(userXML.getConsistentFaves().getSongs())
+        elif event.key == 'Right':
+            # mode.currentPosition += 1
+        elif event.key == 'Left':
+            # mode.currentPosition -= 1
 
     def loadImages(mode):
         for song in mode.topSongs:
@@ -27,6 +32,14 @@ class DataMode(Mode):
             image = mode.loadImage(url)
             scale = (songsXML.getPlayCount(song))/(songsXML.getPlayCount(mode.topSongs[0]))
             mode.images.append(mode.scaleImage(image,scale))
+    
+    def drawSong(mode,canvas,pos):
+        image = mode.images[pos]
+        title = mode.topSongs[pos].title
+        album = mode.topSongs[pos].album
+        artist = mode.topSongs[pos].artist
+        playcount = mode.topSongs[pos].playcount
+        canvas.create_image(mode.width//2,mode.height//2,image=ImageTk.PhotoImage(image))
 
     def drawTopSongs(mode,canvas):
         image = mode.images[mode.currentPosition]
@@ -35,7 +48,10 @@ class DataMode(Mode):
         artist = mode.topSongs[mode.currentPosition].artist
         playcount = mode.topSongs[mode.currentPosition].playcount
         canvas.create_image(mode.width//2,mode.height//2,image=ImageTk.PhotoImage(image))
-        # canvas.create_text(mode.width//2,mode.height//2,text=)
+        canvas.create_text(mode.width//2,mode.height//2+100,text=title)
+        canvas.create_text(mode.width//2,mode.height//2+150,text=artist)
+        canvas.create_text(mode.width//2,mode.height//2+175,text=album)
+
     
     def drawTopSongsText(mode,canvas):
         pass
