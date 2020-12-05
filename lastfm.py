@@ -63,11 +63,13 @@ class LastFMUser(object):
         recenttracks = tree.getchildren()[0].getchildren()
         for track in recenttracks:
             print(track.find('name').text)
-            result.append({
-                'title':track.find('name').text,
-                'artist':track.find('artist').text,
-                'album':track.find('album').text
-            })
+            if track.attrib == {}:
+                result.append({
+                    'title':track.find('name').text,
+                    'artist':track.find('artist').text,
+                    'album':track.find('album').text,
+                    'timestamp':track.find('date').attrib['uts']
+                })
         return result
 
 username = settingsXML.getLastFM()
