@@ -19,6 +19,8 @@ class PlayerMode(Mode):
         mode.repeatCurrent = False
         mode.ignorePlay = False
 
+        mode.volume = 1
+
         # mode identifiers
         mode.selectQueueMode = True
         # selection modes are: album, artist, or playlist
@@ -28,16 +30,16 @@ class PlayerMode(Mode):
         #TODO:edit button positions
         # buttons in the queue selection menu
         mode.qButtons = {
-            'all':(mode.width//1.5-5,mode.height//4-5,
-                   mode.width//1.5+5,mode.height//4+5),
-            'artist':(mode.width//1.5-5,mode.height//2-5,
-                               mode.width//1.5+5,mode.height//2+5),
-            'album':(mode.width//1.5-5,3*mode.height//4-5,
-                               mode.width//1.5+5,3*mode.height//4+5),
-            'playlist':(mode.width//1.5-5,3*mode.height//3.5-5,
-                               mode.width//1.5+5,3*mode.height//3.5+5),
-            'today':(mode.width//1.5-5,3*mode.height//3.5-5,
-                               mode.width//1.5+5,3*mode.height//3.5+5),
+            'all':(mode.width//1.5-5,50,
+                   mode.width//1.5+5,60),
+            'artist':(mode.width//1.5-5,70,
+                      mode.width//1.5+5,80),
+            'album':(mode.width//1.5-5,90,
+                     mode.width//1.5+5,100),
+            'playlist':(mode.width//1.5-5,110,
+                        mode.width//1.5+5,120),
+            'today':(mode.width//1.5-5,130,
+                     mode.width//1.5+5,140),
         }
         # buttons in the player screen
         mode.pButtons = {
@@ -59,7 +61,7 @@ class PlayerMode(Mode):
         songsXML.addAllSongs()
         mode.lastSync = settingsXML.getLastCloudSync()
         settingsXML.writeLastCloudSync(int(time.time()))
-        # songsXML.refreshLibraryFromCloud(user.getRecentTracks(mode.lastSync)) #TODO: testing the other TODO
+        songsXML.refreshLibraryFromCloud(user.getRecentTracks(mode.lastSync)) #TODO: testing the other TODO
 
 # mouse pressed functions
     def queueButtonClicked(mode,button,x,y):
@@ -87,12 +89,18 @@ class PlayerMode(Mode):
         if mode.selectQueueMode:
             if mode.selectionMode in 'artist,playlist':
                 mode.textSelectionPosition += 1
+        else:
+            mode.volume -= 0.05
+            mixer.music.set_volume(max(mode.volume,0))
 
     def handleUpKey(mode):
         if mode.selectQueueMode:
             if mode.selectionMode in 'artist,playlist':
                 mode.textSelectionPosition -= 1
-    
+        else:
+            mode.volume += 0.05
+            mixer.music.set_volume(min(mode.volume,1))
+
     def handleEnterKey(mode):
         if mode.selectQueueMode:
             if mode.selectionMode == 'artist':
@@ -115,11 +123,17 @@ class PlayerMode(Mode):
             elif key == '4':
                 pass
             elif key == '5':
-                pass
+                mode.queueTodayPlaylist()
 
     def handleSpaceKey(mode):
         if not mode.selectQueueMode:
             mode.togglePlay()
+    
+    def handleXKey(mode):
+        if not mode.selectQueueMode:
+            mode.resetPlayer()
+        else:
+            mode.app.setActiveMode(mode.app.welcomeMode)
 
     def keyPressed(mode,event):
         if event.key == 'Down':
@@ -137,7 +151,7 @@ class PlayerMode(Mode):
         elif event.key in '1234567890':
             mode.handleDigitKey(event.key)
         elif event.key == 'x':
-            mode.resetPlayer()
+            mode.handleXKey()
         elif event.key == 's':
             if not mode.selectQueueMode:
                 mode.shuffleQueue()
@@ -145,6 +159,8 @@ class PlayerMode(Mode):
             mode.repeatCurrent = not mode.repeatCurrent
         elif event.key == 'i':
             mode.ignorePlay = True
+        elif event.key == 'd':
+            mode.app.setActiveMode(mode.app.dataMode)
 # end of key pressed functions
 
     def resetPlayer(mode):
@@ -180,6 +196,15 @@ class PlayerMode(Mode):
         mode.queue.addSongs(playlist.getSongs())
         mode.selectQueueMode = False
 
+    def queueTodayPlaylist(mode):
+        date = datetime.date.today()
+        print(date)
+        dayType = userXML.getDayType(date)
+        dayTime = userXML.getDayTime(date)
+        playlist = userXML.getSongsForDayType(dayType,dayTime)
+        mode.queue.addSongsDict(playlist)
+        mode.selectQueueMode = False
+
     def queueAllSongs(mode):
         mode.queue.removeAllSongs()
         mode.queue.addSongs(songsXML.getAllSongs())
@@ -213,6 +238,7 @@ class PlayerMode(Mode):
         mode.loadNowPlayingCover()
 
     def handleNextSong(mode):
+        print(mode.nowPlaying.path)
         if not mode.ignorePlay:
             songsXML.incrementPlayCount(mode.nowPlaying.path)
             userXML.addSongToDay(datetime.date.today(),mode.nowPlaying)
@@ -238,7 +264,7 @@ class PlayerMode(Mode):
 
     def timerFired(mode):
         if mode.nowPlayingSound != None:
-            if mixer.music.get_pos() == -1:
+            if mixer.music.get_pos() == -1 and mode.queuePos < mode.queue.getLength():
                 mode.handleNextSong()
 
     def getAllAlbumCovers(mode):
@@ -324,6 +350,7 @@ class PlayerMode(Mode):
     # draw functions for player mode
     def drawPlayerMode(mode,canvas):
         mode.drawNowPlaying(canvas)
+        # TODO: draw buttons
     
     def drawNowPlaying(mode,canvas):
         if mode.nowPlayingImage != None:
@@ -333,6 +360,11 @@ class PlayerMode(Mode):
             canvas.create_text(mode.width//2,mode.height//2+175,text=mode.nowPlaying.artist,fill=scheme.getAccent1(),font=fonts['accent'])
         if mode.repeatCurrent:
             canvas.create_text(mode.width//2,mode.height//2+200,text='repeat current',fill=scheme.getAccent1(),font=fonts['accent2'])
+        if mode.nowPlayingSound != None:
+            length = 200*((mixer.music.get_pos()//1000)/mode.nowPlayingSound.get_length())
+            canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2+100,mode.height//1.5+10,fill='white',width=0)
+            canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2-100+int(length),mode.height//1.5+10,fill=scheme.getAccent2(),width=0)
+
 
 
 
