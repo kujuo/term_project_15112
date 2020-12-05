@@ -1,9 +1,11 @@
 fonts = {
     'title':'Ubuntu 36',
-    'accent':'Ubuntu 12'
+    'accent':'Ubuntu 12',
+    'accent2':'Ubuntu 8'
 }
 class ColorScheme(object):
     fills = {'dark':(18,18,18),'light':(215,253,255)}
+    fills2 = {'dark':(40,40,40),'light':(200,200,200)}
     accent1 = {'dark':(20,255,236),'light':(148,40,142)}
     accent2 = {'dark':(255,51,204),'light':(255,255,0)}
 
@@ -21,6 +23,7 @@ class ColorScheme(object):
         self.fill = ColorScheme.fills[color]
         self.accent1 = ColorScheme.accent1[color]
         self.accent2 = ColorScheme.accent2[color]
+        self.fill2 = ColorScheme.fills2[color]
     
     # copied from graphics course notes
     # https://www.cs.cmu.edu/~112/notes/notes-graphics.html
@@ -39,6 +42,9 @@ class ColorScheme(object):
 
     def getFill(self):
         return self.rgbString(self.fill[0],self.fill[1],self.fill[2])
+    
+    def getFill2(self):
+        return self.rgbString(self.fill2[0],self.fill2[1],self.fill2[2])
 
     def getAccent1(self):
         return self.rgbString(self.accent1[0],self.accent1[1],self.accent1[2])
