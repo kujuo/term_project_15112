@@ -272,7 +272,7 @@ class UserDataXML(object):
             else:
                 song.set('playcount','1')
         else:
-            song = self.root.find('.day/song[@path="'+songPath+'"]')
+            song = self.root.find('.day/song[@path="'+path+'"]')
             count = int(song.attrib['playcount']) + 1
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
