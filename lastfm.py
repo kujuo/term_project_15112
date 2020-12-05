@@ -1,5 +1,7 @@
 import requests
 from apikey import *
+from xml_io import *
+from playlist import *
 import xml.etree.ElementTree as ET
 
 # referenced these websites for help on syntax/methods
@@ -54,7 +56,19 @@ class LastFMUser(object):
     def getUserLovedTracks(self):
         return self.lastFMGet({'method':'user.getLovedTracks','user':self.username})
 
-    def getRecentTracks(self):
-        return self.lastFMGet({'method':'user.getRecentTracks','user':self.username})
+    def getRecentTracks(self,lastSync):
+        result = []
+        data = self.lastFMGet({'method':'user.getRecentTracks','user':self.username,'from':lastSync})
+        tree = ET.fromstring(data)
+        recenttracks = tree.getchildren()[0].getchildren()
+        for track in recenttracks:
+            print(track.find('name').text)
+            result.append({
+                'title':track.find('name').text,
+                'artist':track.find('artist').text,
+                'album':track.find('album').text
+            })
+        return result
 
-user = LastFMUser('')
+username = settingsXML.getLastFM()
+user = LastFMUser(username)
