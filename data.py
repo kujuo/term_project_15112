@@ -5,11 +5,10 @@ from xml_io import *
 
 class DataMode(Mode):
     def appStarted(mode):
-        # aaaaaaaaaaaa
-        # use mode. instead of mode.
-        mode.topSongs = songsXML.getRankedSongs().getSongs()
+        mode.topSongs = songsXML.getRankedSongs().getSongs()[:11]
         mode.images = []
         mode.loadImages()
+        mode.currentPosition = 0
 
     def timerFired(mode):
         pass
@@ -19,7 +18,8 @@ class DataMode(Mode):
 
     def keyPressed(mode,event):
         if event.key == 'y':
-            print(songsXML.getRankedSongs().getSongs())
+            # print(mode.topSongs)
+            print(userXML.getConsistentFaves().getSongs())
 
     def loadImages(mode):
         for song in mode.topSongs:
@@ -29,10 +29,18 @@ class DataMode(Mode):
             mode.images.append(mode.scaleImage(image,scale))
 
     def drawTopSongs(mode,canvas):
-        yPos = 50
-        for image in mode.images:
-            canvas.create_image(50,yPos,image=ImageTk.PhotoImage(image))
-            yPos += 100
+        image = mode.images[mode.currentPosition]
+        title = mode.topSongs[mode.currentPosition].title
+        album = mode.topSongs[mode.currentPosition].album
+        artist = mode.topSongs[mode.currentPosition].artist
+        playcount = mode.topSongs[mode.currentPosition].playcount
+        canvas.create_image(mode.width//2,mode.height//2,image=ImageTk.PhotoImage(image))
+        # canvas.create_text(mode.width//2,mode.height//2,text=)
+    
+    def drawTopSongsText(mode,canvas):
+        pass
+    # TODO: finish after last.fm integration
+
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())

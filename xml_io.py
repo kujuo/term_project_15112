@@ -105,7 +105,7 @@ class SongsXML(object):
         songs = []
         # albumPath = "/" + self.rootdir + "/" + artist + "/" + album + "/"
         for song in self.root.findall('./song/[@album="' + album + '"]'):
-            if song.attrib['artist'] == artist:
+            if song.attrib['artist'] == artist and song.attrib['path'] != '':
                 songObject = Song(song.attrib['title'],
                                 artist,album,
                                 song.attrib['path'])
@@ -117,10 +117,11 @@ class SongsXML(object):
         # artistPath = "/" + self.rootdir + "/" + artist + "/"
         # for song in self.root.findall('./song/[@path="' + artistPath + '"]'):
         for song in self.root.findall('./song/[@artist="' + artist + '"]'):
-            songObject = Song(song.attrib['title'],
-                              artist,song.attrib['album'],
-                              song.attrib['path'])
-            songs.append(songObject)
+            if song.attrib['path'] != '':
+                songObject = Song(song.attrib['title'],
+                                artist,song.attrib['album'],
+                                song.attrib['path'])
+                songs.append(songObject)
         return songs
     
     def getArtistAlbums(self,artist):
@@ -164,17 +165,23 @@ class SongsXML(object):
     #TODO: test
     def refreshLibraryFromCloud(self,songDicts):
         for song in songDicts:
-            songElem = self.root.find('./song[@title="'+song['title']+'"@album="'+song['album']+'"@artist="'+song['artist']+'"]')
-            if songElem != None:
-                count = songElem.attrib['playcount']
-                songElem.attrib['playcount'] = count + 1
+            title = song['title']
+            album = song['album']
+            artist = song['artist']
+            songElem = self.root.find('./song[@title="'+title+'"]')
+            if (songElem != None and 
+                songElem.attrib['album'] == album and 
+                songElem.attrib['artist'] == artist):
+                    count = songElem.attrib['playcount']
+                    songElem.attrib['playcount'] = str(int(count) + 1)
             else:
                 songElem = ET.SubElement(self.root,'song')
                 songElem.attrib['title'] = song['title']
                 songElem.attrib['album'] = song['album']
                 songElem.attrib['artist'] = song['artist']
                 songElem.attrib['path'] = ''
-                songElem.attrib['playcount'] = 1
+                songElem.attrib['playcount'] = '1'
+        self.tree.write(self.filename)
 
     def incrementPlayCount(self,songPath):
         song = self.root.find('./song[@path="'+songPath+'"]')
@@ -251,9 +258,28 @@ class UserDataXML(object):
             day = self.root.find('.day[@date="'+date+'"]')
             day.attrib['time'] = dayTime
         self.tree.write(self.filename)
+    
+    def getDayType(self,date):
+        date = str(date)
+        if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
+            print("check in before getting today's playlist")
+            return ''
+        else:
+            element = self.root.find('./day[@date="'+date+'"]')
+            return element.attrib['type']
+    
+    def getDayTime(self,date):
+        date = str(date)
+        if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
+            print("check in before getting today's playlist")
+            return ''
+        else:
+            element = self.root.find('./day[@date="'+date+'"]')
+            return element.attrib['time']
 
     def addSongToDay(self,date,songObject):
         date = str(date)
+        print(date)
         title = songObject.title
         path = songObject.path
         if self.tree.find('./day[@date="'+date+'"]') == None:
@@ -272,20 +298,58 @@ class UserDataXML(object):
             else:
                 song.set('playcount','1')
         else:
-            song = self.root.find('.day/song[@path="'+path+'"]')
+            song = self.root.find('.day[@date="'+date+'"]/song[@path="'+path+'"]')
             count = int(song.attrib['playcount']) + 1
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
 
+    # how often user plays this song across days
     def getSongConsistencyScore(self,songObject):
         daysListened = self.root.findall('./day/song[@path="'+ songObject.path + '"]')
-        return len(daysListened)
+        return len(daysListened)/len(self.root.getchildren())
 
+    # songs with high playcounts but low consistency score
     def getOneHitWonders(self):
-        pass
+        result = []
+        playlist = Playlist('One Hit Wonders',None)
+        topSongs = songsXML.getRankedSongs()
+        for song in topSongs.getSongs():
+            consistency = self.getSongConsistencyScore(song)
+            if consistency != 0:
+                score = int(song.playcount)/consistency
+                print(song.title,song.playcount,consistency,score)
+                if score != 0:
+                    result.append({
+                        'title':song.title,
+                        'artist':song.artist,
+                        'album':song.album,
+                        'path':song.path,
+                        'playcount':song.playcount,
+                        'score':str(score)
+                    })
+        result.sort(key=(lambda d: d['score']),reverse=True)
+        playlist.addSongsDict(result)
+        return playlist
 
     def getConsistentFaves(self):
-        pass # may need to put these in "songsXML"
+        result = []
+        playlist = Playlist('Feel-good Faves',None)
+        topSongs = songsXML.getRankedSongs()
+        for song in topSongs.getSongs():
+            score = int(song.playcount)*self.getSongConsistencyScore(song)
+            print(song.title,song.playcount,self.getSongConsistencyScore(song),score)
+            if score != 0:
+                result.append({
+                    'title':song.title,
+                    'artist':song.artist,
+                    'album':song.album,
+                    'path':song.path,
+                    'playcount':song.playcount,
+                    'score':str(score)
+                })
+        result.sort(key=(lambda d: d['score']),reverse=True)
+        playlist.addSongsDict(result)
+        return playlist
     
     # TODO: implement "keep coming back to" songs and "on repeat one hit wonder" songs
     def getSongDayTypeScore(self,currTime,song):
@@ -332,6 +396,8 @@ class UserDataXML(object):
             daySongs[i]['score'] = self.getSongDayTypeScore(currTime,daySongs[i])
             i += 1
         daySongs.sort(key=(lambda d: d['score']),reverse=True)
+        for song in daySongs:
+            del song['score']
         return daySongs
 
 settingsXML = SettingsXML('./xml_files/settings.xml')

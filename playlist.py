@@ -1,6 +1,3 @@
-from dataclasses import make_dataclass
-
-
 # Song = make_dataclass('Song',['title','path'])
 class Song(object):
     def __init__(self,title,artist,album,path,playcount=0):
@@ -41,7 +38,7 @@ class Playlist(object):
     def addSongsDict(self,songDicts):
         for songDict in songDicts:
             self.songs.append(Song(songDict['title'],songDict['artist'],
-                                   songDict['album'],songDict['path']))
+                                   songDict['album'],songDict['path'],songDict['playcount']))
 
     def inPlaylist(self,song):
         return song in self.songs
@@ -55,8 +52,14 @@ class Playlist(object):
         else:
             return self.songs
     
+    def getLength(self):
+        return len(self.songs)
+    
     def addParent(self,parent):
         self.parent = parent
     
     def removeAllSongs(self):
         self.songs = []
+    
+    def removeSongsAfterPosition(self,position):
+        self.songs = self.songs[:position+1]
