@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 import os
-import datetime
+import datetime,time
 
 from playlist import *
 # from lastfm import *
@@ -199,7 +199,14 @@ class SongsXML(object):
         return(self.root.find('./song[@path="'+songObj.path+'"]'))
 
     def getSongTitleMatches(self,songTitle):
-        result = self.root.findall('./song[@title="'+songTitle+'"]')
+        result = []
+        songs = self.root.findall('./song[@title="'+songTitle+'"]')
+        for child in songs:
+            if child.attrib['path'] != '':
+                result.append(Song(child.attrib['title'].strip(),
+                                   child.attrib['artist'].strip(),
+                                   child.attrib['album'].strip(),
+                                   child.attrib['path'].strip()))
         if result == []:
             print('song not found')
         else:
@@ -283,10 +290,8 @@ class UserDataXML(object):
         title = songObject.title
         path = songObject.path
         if self.tree.find('./day[@date="'+date+'"]') == None:
-            print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
             day = ET.SubElement(self.root,'day')
             day.attrib['date'] = date
-            print(ET.tostring(self.root,encoding='utf8').decode('utf8'))
         if self.tree.find('./day[@date="'+date+'"]/song[@title="'+title+'"]') == None and self.tree.find('./day[@date="'+date+'"]/song[@path="'+path+'"]') == None:
             song = ET.SubElement(self.tree.find('./day[@date="'+date+'"]'),'song')
             song.set('title',songObject.title)
@@ -302,6 +307,40 @@ class UserDataXML(object):
             count = int(song.attrib['playcount']) + 1
             song.attrib['playcount'] = str(count)
         self.tree.write(self.filename)
+    
+    def addSongsFromCloud(self,songsDict):
+        for song in songsDict:
+            title = song['title']
+            album = song['album']
+            artist = song['artist']
+            d = time.localtime(int(song['timestamp']))
+            year,month,day = str(d[0]),str(d[1]),str(d[2])
+            # convert uts seconds to local date using tuple access
+            # account for single digit months and dates
+            if len(month) == 1:
+                month = '0' + month
+            if len(day) == 1:
+                day = '0' + day
+            date = year+'-'+month+'-'+day
+            print(date)
+            if self.tree.find('./day[@date="'+date+'"]') == None:
+                day = ET.SubElement(self.root,'day')
+                day.attrib['date'] = date
+            songElem = self.root.find('./day[@date="'+date+'"]/song[@title="'+title+'"]')
+            if (songElem != None and 
+                songElem.attrib['album'] == album and 
+                songElem.attrib['artist'] == artist):
+                    count = songElem.attrib['playcount']
+                    songElem.attrib['playcount'] = str(int(count) + 1)
+            else:
+                songElem = ET.SubElement(self.tree.find('./day[@date="'+date+'"]'),'song')
+                songElem.attrib['title'] = song['title']
+                songElem.attrib['album'] = song['album']
+                songElem.attrib['artist'] = song['artist']
+                songElem.attrib['path'] = ''
+                songElem.attrib['playcount'] = '1'
+        self.tree.write(self.filename)
+
 
     # how often user plays this song across days
     def getSongConsistencyScore(self,songObject):
@@ -369,7 +408,7 @@ class UserDataXML(object):
         daySongs = []
         result = []
         for day in self.root.getchildren(): # child is a day
-            if day.attrib['type'] == dayType:
+            if day.attrib['type'] != None and day.attrib['type'] == dayType:
                 songs = day.getchildren()
                 for song in songs:
                     song.attrib['time'] = day.attrib['time']
