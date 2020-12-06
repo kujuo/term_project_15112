@@ -7,7 +7,8 @@ from data import *
 from helpscreen import *
 from settings import *
 
-
+# referenced course notes: 
+# https://www.cs.cmu.edu/~112/notes/notes-animations-part3.html
 class MyApp(ModalApp):
     def appStarted(app):
         app.welcomeMode = WelcomeMode()
