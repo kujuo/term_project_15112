@@ -3,7 +3,7 @@ import os
 import datetime,time
 
 from playlist import *
-# from lastfm import *
+from lastfm import *
 
 # referenced the following websites for XML IO syntax,
 # and tips on handling XML files. No code was copied.
@@ -101,14 +101,39 @@ class SongsXML(object):
         playlist.addSongsDict(topSongs)
         return playlist
 
+    def getRankedArtists(self):
+        allArtists = self.getAllArtists()
+        topArtists = [] # list of dicts, artist:playcount
+        for artist in allArtists:
+            playcount = self.getArtistPlayCount(artist)
+            topArtists.append({
+                'artist':artist,
+                'playcount':playcount
+            })
+        topArtists.sort(key=(lambda d: d['playcount']),reverse=True)
+        return topArtists
+
+    def getRankedAlbums(self):
+        allAlbums = self.getAllAlbums()
+        topAlbums = [] # list of dicts, album:playcount
+        for album in allAlbums:
+            playcount = self.getAlbumPlayCount(album)
+            topAlbums.append({
+                'album':album[0],
+                'artists':album[1],
+                'playcount':playcount
+            })
+        topAlbums.sort(key=(lambda d: d['playcount']),reverse=True)
+        return topAlbums
+
     def getAlbumSongs(self,album,artist):
         songs = []
         # albumPath = "/" + self.rootdir + "/" + artist + "/" + album + "/"
         for song in self.root.findall('./song/[@album="' + album + '"]'):
             if song.attrib['artist'] == artist and song.attrib['path'] != '':
                 songObject = Song(song.attrib['title'],
-                                artist,album,
-                                song.attrib['path'])
+                                  artist,album,
+                                  song.attrib['path'])
                 songs.append(songObject)
         return songs
     
@@ -126,7 +151,6 @@ class SongsXML(object):
     
     def getArtistAlbums(self,artist):
         albums = []
-
 
     def refreshLibrary(self):
         existingSongs = ET.tostring(self.root,encoding='utf8').decode('utf8')
@@ -162,7 +186,6 @@ class SongsXML(object):
             for filename in os.listdir(rootdir):
                 self.refreshLibraryHelper(rootdir + '/' + filename,existingSongs)
     
-    #TODO: test
     def refreshLibraryFromCloud(self,songDicts):
         for song in songDicts:
             title = song['title']
@@ -194,6 +217,18 @@ class SongsXML(object):
         path = song.path
         count = self.root.find('./song[@path="'+path+'"]').attrib['playcount']
         return int(count)
+    
+    def getArtistPlayCount(self,artist):
+        count = 0
+        for song in self.root.findall('./song/[@artist="' + artist + '"]'):
+            count += int(song.attrib['playcount'])
+        return count
+
+    def getAlbumPlayCount(self,album):
+        count = 0
+        for song in self.root.findall('./song/[@album="' + album + '"]'):
+            count += int(song.attrib['playcount'])
+        return count
 
     def getSong(self,songObj):
         return(self.root.find('./song[@path="'+songObj.path+'"]'))
@@ -341,7 +376,6 @@ class UserDataXML(object):
                 songElem.attrib['playcount'] = '1'
         self.tree.write(self.filename)
 
-
     # how often user plays this song across days
     def getSongConsistencyScore(self,songObject):
         daysListened = self.root.findall('./day/song[@path="'+ songObject.path + '"]')
@@ -356,7 +390,6 @@ class UserDataXML(object):
             consistency = self.getSongConsistencyScore(song)
             if consistency != 0:
                 score = int(song.playcount)/consistency
-                print(song.title,song.playcount,consistency,score)
                 if score != 0:
                     result.append({
                         'title':song.title,
@@ -400,7 +433,6 @@ class UserDataXML(object):
             minutes=dMinutes
         )
         playcount = int(song['playcount'])
-        print(playcount/(dTime.seconds+1))
         return playcount/(dTime.seconds+1)
 
     # TODO: this is uhh really inefficient O(n^2), must be a better way
@@ -411,15 +443,14 @@ class UserDataXML(object):
             if day.attrib['type'] != None and day.attrib['type'] == dayType:
                 songs = day.getchildren()
                 for song in songs:
-                    song.attrib['time'] = day.attrib['time']
-                    daySongs.append(song.attrib)
+                    if song.attrib['path'] != '':
+                        song.attrib['time'] = day.attrib['time']
+                        daySongs.append(song.attrib)
         i = 0
         while i <= len(daySongs) - 1:
             j = i + 1
             while j < len(daySongs):
-                print(i,j)
                 if daySongs[i]['path'] == daySongs[j]['path']:
-                    print('in here')
                     iCount = int(daySongs[i]['playcount'])
                     iCount += int(daySongs[j]['playcount'])
 
@@ -429,8 +460,6 @@ class UserDataXML(object):
                     daySongs[i]['time'] = str(avgTime)
                     daySongs[i]['playcount'] = str(iCount)
                     daySongs.pop(j)
-                else:
-                    print('not in here')
                 j += 1
             daySongs[i]['score'] = self.getSongDayTypeScore(currTime,daySongs[i])
             i += 1
@@ -439,6 +468,24 @@ class UserDataXML(object):
             del song['score']
         return daySongs
 
+    def getDayTopSongs(self,date):
+        topSongs = []
+        if self.tree.find('./day[@date="'+date+'"]') != None:
+            for song in self.tree.find('./day[@date="'+date+'"]').getchildren():
+                topSongs.append(song.attrib)
+        topSongs.sort(key=(lambda d: d['playcount']),reverse=True)
+        return topSongs
+
+    def getDayListeningTime(self,date):
+        time = 0
+        if self.tree.find('./day[@date="'+date+'"]') != None:
+            for song in self.tree.findall('./day[@date="'+date+'"]/song'):
+                time += user.getTrackDurationSeconds(song.attrib)
+        return time
+
 settingsXML = SettingsXML('./xml_files/settings.xml')
 songsXML = SongsXML('./xml_files/songdata.xml',settingsXML.getRootDir())
 userXML = UserDataXML('./xml_files/userdata.xml')
+
+username = settingsXML.getLastFM()
+user = LastFMUser(username)
