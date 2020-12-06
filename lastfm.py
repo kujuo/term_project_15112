@@ -31,6 +31,7 @@ class LastFMUser(object):
     def getAlbumInfo(self,album,artist):
         return self.lastFMGet({'method':'album.getInfo','artist':artist,'album':album})
     
+    # default image created in GIMP application on my laptop
     def getAlbumCoverURL(self,album,artist):
         albumInfo = str(self.getAlbumInfo(album,artist))
         tree = ET.fromstring(albumInfo)
