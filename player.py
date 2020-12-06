@@ -5,6 +5,7 @@ from design import *
 from pygame import mixer
 import time,random
 
+# reference for time module: https://docs.python.org/3/library/time.html
 class PlayerMode(Mode):
     def appStarted(mode):
         # playback settings
@@ -141,6 +142,10 @@ class PlayerMode(Mode):
                         else:
                             selection = mode.getUserInput('choose song')
                             mode.queue.addSong(result[int(selection)])
+        # else:
+        #     mode.queuePos += int(key)
+        #     mode.loadNowPlaying()
+        #     mode.loadNowPlayingCover()
                 # build queue mode
                 # include save queue as playlist button
                 # also write playlists to xml file
@@ -387,8 +392,8 @@ class PlayerMode(Mode):
             length = 200*((mixer.music.get_pos()//1000)/mode.nowPlayingSound.get_length())
             canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2+100,mode.height//1.5+10,fill='white',width=0)
             canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2-100+int(length),mode.height//1.5+10,fill=scheme.getAccent2(),width=0)
-
-
+    
+    # def drawQueue(mode,canvas):
 
 
     def redrawAll(mode,canvas):
