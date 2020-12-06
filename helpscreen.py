@@ -2,8 +2,6 @@ from cmu_112_graphics import *
 
 class HelpMode(Mode):
     def appStarted(mode):
-        # aaaaaaaaaaaa
-        # use mode. instead of mode.
         pass
 
     def timerFired(mode):
