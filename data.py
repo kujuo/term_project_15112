@@ -38,6 +38,7 @@ class DataMode(Mode):
         }
         mode.totalListeningTime = 0
         mode.totalSongsListened = 0
+        mode.totalListeningDays = 0
 
     def mousePressed(mode,event):
         pass
@@ -94,11 +95,15 @@ class DataMode(Mode):
             elif mode.currentMode == 'today':
                 if view == 'playback':
                     mode.loadDayTopSongImages()
+            elif mode.currentMode == 'all time':
+                if view == 'playback':
+                    mode.loadAllTimeImages()
 
     def keyPressed(mode,event):
         if event.key == 't':
-            mode.loadWeekTopSongImages()
+            # mode.loadWeekTopSongImages()
             # print(mode.images)
+            pass
         elif event.key == 'x':
             mode.app.setActiveMode(mode.app.welcomeMode)
         elif event.key == 'Right' or event.key == 'Left':
@@ -119,6 +124,7 @@ class DataMode(Mode):
         mode.images += [songImage,artistImage]
         mode.totalSongsListened = songsXML.getTotalPlaycounts()
         mode.totalListeningTime = userXML.getTotalListeningTime()//60
+        mode.totalListeningDays = userXML.getTotalListeningDays()
 
     # def loadWeekTopSongImages(mode):
     #     mode.images = []
@@ -286,14 +292,25 @@ class DataMode(Mode):
         view = mode.viewModes[mode.currentMode][mode.currentModePos]
         if view == '':
             canvas.create_text(mode.width//2,mode.height//2,text="your all-time stats",fill=scheme.getAccent1(),font=fonts['title'])
-            canvas.create_text(mode.width//2,mode.height//2+100,text='listening for: '+ str(userXML.getTotalListeningDays())+' days',fill=scheme.getAccent1(),font=fonts['accent'])
+            canvas.create_text(mode.width//2,mode.height//2 + 50,
+                               text="grab yourself some coffee or something, cause this might take a while.",
+                               fill=scheme.getAccent1(),font=fonts['accent2'])
             canvas.create_text(mode.width//2,mode.height-50,text='press down arrow to continue',fill=scheme.getAccent1(),font=fonts['accent'])
         elif view == 'playback':
             canvas.create_text(50,10,text=str(mode.totalSongsListened),fill=scheme.getAccent2(),font=fonts['title'],anchor='nw')
             canvas.create_text(50,60,text='songs',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='nw')
 
+            canvas.create_text(50,mode.height-80,text=str(mode.totalSongsListened//mode.totalListeningDays),fill=scheme.getAccent2(),font=fonts['title'],anchor='nw')
+            canvas.create_text(50,mode.height-20,text='songs/day',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='nw')
+
             canvas.create_text(mode.width-50,10,text=str(mode.totalListeningTime),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
             canvas.create_text(mode.width-50,60,text='minutes',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='ne')
+
+            canvas.create_text(mode.width-50,mode.height-80,text=str(mode.totalListeningTime/mode.totalListeningDays),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
+            canvas.create_text(mode.width-50,mode.height-20,text='minutes/day',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='ne')
+
+            canvas.create_image(mode.width//2,mode.height//2-50,image=ImageTk.PhotoImage(mode.images[0]))
+            canvas.create_image(mode.width//2,mode.height//2+50,image=ImageTk.PhotoImage(mode.images[1]))
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
