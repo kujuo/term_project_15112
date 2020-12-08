@@ -74,6 +74,8 @@ class SongsXML(object):
         return self.allSongs
     
     def getAllAlbums(self):
+        if self.allSongs == []:
+            self.addAllSongs()
         albums = set()
         for song in self.allSongs:
             albums.add((song.album,song.artist))
@@ -82,6 +84,8 @@ class SongsXML(object):
         return albumList
 
     def getAllArtists(self):
+        if self.allSongs == []:
+            self.addAllSongs()
         artists = set()
         for song in self.allSongs:
             artists.add(song.artist)
@@ -117,10 +121,10 @@ class SongsXML(object):
         allAlbums = self.getAllAlbums()
         topAlbums = [] # list of dicts, album:playcount
         for album in allAlbums:
-            playcount = self.getAlbumPlayCount(album)
+            playcount = self.getAlbumPlayCount(album[0])
             topAlbums.append({
                 'album':album[0],
-                'artists':album[1],
+                'artist':album[1],
                 'playcount':playcount
             })
         topAlbums.sort(key=(lambda d: d['playcount']),reverse=True)
@@ -151,6 +155,7 @@ class SongsXML(object):
     
     def getArtistAlbums(self,artist):
         albums = []
+        # TODO: finish implementation
 
     def refreshLibrary(self):
         existingSongs = ET.tostring(self.root,encoding='utf8').decode('utf8')
@@ -247,6 +252,15 @@ class SongsXML(object):
         else:
             return result
 
+    def getTotalPlaycounts(self):
+        total = 0
+        if self.allSongs == []:
+            self.addAllSongs()
+        for song in self.allSongs:
+            total += self.getPlayCount(song)
+        return total
+        
+
 class PlaylistsXML(object):
     def __init__(self,filename):
         self.filename = filename
@@ -306,6 +320,11 @@ class UserDataXML(object):
         if date not in ET.tostring(self.root,encoding='utf8').decode('utf8'):
             print("check in before getting today's playlist")
             return ''
+        # TODO: check for day type existence here
+        # elif (self.root.find('./day[@date="'+date+'"]'). == None or
+        #       self.root.find('./day[@date="'+date+'"]').attrib['type'] == ''):
+        #     print("check in before getting today's playlist")
+        #     return ''
         else:
             element = self.root.find('./day[@date="'+date+'"]')
             return element.attrib['type']
@@ -321,9 +340,10 @@ class UserDataXML(object):
 
     def addSongToDay(self,date,songObject):
         date = str(date)
-        print(date)
         title = songObject.title
         path = songObject.path
+        artist = songObject.artist
+        album = songObject.album
         if self.tree.find('./day[@date="'+date+'"]') == None:
             day = ET.SubElement(self.root,'day')
             day.attrib['date'] = date
@@ -337,6 +357,11 @@ class UserDataXML(object):
                 song.set('playcount',song.get('playcount'))
             else:
                 song.set('playcount','1')
+        elif self.tree.find('./day[@date="'+date+'"]/song[@title="'+title+'"]').attrib['path'] == '':
+            song = self.root.find('.day[@date="'+date+'"]/song[@title="'+title+'"]')
+            if song.attrib['artist'] == artist and song.attrib['album'] == album:
+                count = int(song.attrib['playcount']) + 1
+                song.attrib['playcount'] = str(count)
         else:
             song = self.root.find('.day[@date="'+date+'"]/song[@path="'+path+'"]')
             count = int(song.attrib['playcount']) + 1
@@ -357,7 +382,6 @@ class UserDataXML(object):
             if len(day) == 1:
                 day = '0' + day
             date = year+'-'+month+'-'+day
-            print(date)
             if self.tree.find('./day[@date="'+date+'"]') == None:
                 day = ET.SubElement(self.root,'day')
                 day.attrib['date'] = date
@@ -377,6 +401,7 @@ class UserDataXML(object):
         self.tree.write(self.filename)
 
     # how often user plays this song across days
+    # TODO: modify this to include streamed songs
     def getSongConsistencyScore(self,songObject):
         daysListened = self.root.findall('./day/song[@path="'+ songObject.path + '"]')
         return len(daysListened)/len(self.root.getchildren())
@@ -409,7 +434,6 @@ class UserDataXML(object):
         topSongs = songsXML.getRankedSongs()
         for song in topSongs.getSongs():
             score = int(song.playcount)*self.getSongConsistencyScore(song)
-            print(song.title,song.playcount,self.getSongConsistencyScore(song),score)
             if score != 0:
                 result.append({
                     'title':song.title,
@@ -470,18 +494,54 @@ class UserDataXML(object):
 
     def getDayTopSongs(self,date):
         topSongs = []
+        date = str(date)
         if self.tree.find('./day[@date="'+date+'"]') != None:
-            for song in self.tree.find('./day[@date="'+date+'"]').getchildren():
+            for song in self.tree.find('./day[@date="'+date+'"]/song'):
                 topSongs.append(song.attrib)
         topSongs.sort(key=(lambda d: d['playcount']),reverse=True)
         return topSongs
 
-    def getDayListeningTime(self,date):
-        time = 0
+    def getDayTotalSongs(self,date):
+        total = 0
+        date = str(date)
         if self.tree.find('./day[@date="'+date+'"]') != None:
             for song in self.tree.findall('./day[@date="'+date+'"]/song'):
-                time += user.getTrackDurationSeconds(song.attrib)
-        return time
+                total += int(song.attrib['playcount'])
+        return total
+    
+    # returns the amount of time listened in one day in seconds
+    def getDayListeningTime(self,date):
+        time = 0
+        date = str(date)
+        if self.tree.find('./day[@date="'+date+'"]') != None:
+            for song in self.tree.findall('./day[@date="'+date+'"]/song'):
+                # print(total,song.attrib['playcount'])
+                time += (user.getTrackDurationSeconds(song.attrib))*int(song.attrib['playcount'])
+        return int(time)
+
+    # def getWeekTopSongs(self,date):
+    #     topSongsSet = set()
+    #     topSongs = []
+    #     date = str(date)
+    #     if self.tree.find('./day[@date="'+date+'"]') != None:
+    #         days = self.root.getchildren()
+    #         for i in range(8):
+    #             for song in days[i].getchildren():
+    #                 if (song.attrib['title'],song.attrib['artist']) in topSongsSet:
+    #                     topSongs.append(song.attrib)
+    #                     # HERE!
+    #     topSongs.sort(key=(lambda d: d['playcount']),reverse=True)
+    #     return topSongs
+
+    def getTotalListeningTime(self):
+        total = 0
+        for day in self.root.findall('./day'):
+            date = day.attrib['date']
+            total += self.getDayListeningTime(date)
+        return total
+    
+    def getTotalListeningDays(self):
+        return len(self.root.findall('./day'))
 
 settingsXML = SettingsXML('./xml_files/settings.xml')
 songsXML = SongsXML('./xml_files/songdata.xml',settingsXML.getRootDir())
