@@ -18,6 +18,7 @@ class PlayerMode(Mode):
         mode.paused = False
         mode.mixerLoaded = False
         mode.repeatCurrent = False
+        mode.repeatQueue = False
         mode.ignorePlay = False
 
         mode.volume = 1
@@ -182,6 +183,8 @@ class PlayerMode(Mode):
                 mode.shuffleQueue()
         elif event.key == 'r':
             mode.repeatCurrent = not mode.repeatCurrent
+        elif event.key == 'R':
+            mode.repeatQueue = not mode.repeatQueue
         elif event.key == 'i':
             mode.ignorePlay = True
         elif event.key == 'd':
@@ -281,7 +284,14 @@ class PlayerMode(Mode):
             mixer.music.play()
             mode.nowPlayingSound = mixer.Sound(mode.nowPlaying.path)
         else:
-            print('end of queue, press x to return to selection')
+            if not mode.repeatQueue:
+                print('end of queue, press x to return to selection')
+            else:
+                mode.queuePos = 0
+                mode.nowPlaying = mode.queue.getSongs()[mode.queuePos]
+                mixer.music.load(mode.nowPlaying.path)
+                mixer.music.play()
+                mode.nowPlayingSound = mixer.Sound(mode.nowPlaying.path)
 
     def loadNowPlayingCover(mode):
         coverURL = user.getAlbumCoverURL(mode.nowPlaying.album,mode.nowPlaying.artist)
@@ -388,6 +398,8 @@ class PlayerMode(Mode):
             canvas.create_text(mode.width//2,mode.height//2+175,text=mode.nowPlaying.artist,fill=scheme.getAccent1(),font=fonts['accent'])
         if mode.repeatCurrent:
             canvas.create_text(mode.width//2,mode.height//2+200,text='repeat current',fill=scheme.getAccent1(),font=fonts['accent2'])
+        elif mode.repeatQueue:
+            canvas.create_text(mode.width//2,mode.height//2+200,text='repeat queue',fill=scheme.getAccent1(),font=fonts['accent2'])
         if mode.nowPlayingSound != None:
             length = 200*((mixer.music.get_pos()//1000)/mode.nowPlayingSound.get_length())
             canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2+100,mode.height//1.5+10,fill='white',width=0)
