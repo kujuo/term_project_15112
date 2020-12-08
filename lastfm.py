@@ -50,10 +50,10 @@ class LastFMUser(object):
     
     def getArtistImgURL(self,artist):
         artistInfo = str(self.getArtistInfo(artist))
-        tree = ET.fromstring(albumInfo)
+        tree = ET.fromstring(artistInfo)
         if tree.find('./artist/image[@size="large"]') != None:
             if tree.find('./artist/image[@size="large"]').text != None:
-                return tree.find('./album/image[@size="large"]').text
+                return tree.find('./artist/image[@size="large"]').text
             else:
                 print('artist img not found for '+artist)
                 return 'default.png'
