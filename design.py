@@ -55,3 +55,47 @@ class ColorScheme(object):
         return self.rgbString(typeColor[0],typeColor[1],typeColor[2])
 
 scheme = ColorScheme('dark')
+
+import random
+class Collage(object):
+    def __init__(self,items,width,height):
+        self.items = items
+        self.allocatedSpace = []
+        self.positions = []
+        self.margin = 80
+        self.width = width-self.margin
+        self.height = height-self.margin
+        self.rootPosition = (self.margin,self.height)
+
+    def isPositionLegal(self,x,y,size):
+        if self.allocatedSpace == []:
+            return True
+        for zone in self.allocatedSpace:
+            if (zone[0] <= x-size <= zone[2] and zone[1] <= y-size <= zone[3]):
+                return False
+            if (zone[0] <= x+size <= zone[2] and zone[1] <= y+size <= zone[3]):
+                return False
+            if (zone[0] <= x+size <= zone[2] and zone[1] <= y-size <= zone[3]):
+                return False
+            if (zone[0] <= x-size <= zone[2] and zone[1] <= y+size <= zone[3]):
+                return False
+            if (x < self.margin or x > self.width or 
+                y < self.margin or y > self.height):
+                return False
+        return True
+
+    def getImageCollagePosition(self,index):
+        print(index)
+        numSpots = len(self.items)
+        x,y = random.randint(self.margin,self.width),random.randint(self.margin,self.height)
+        image = self.items[index][0]
+        while not self.isPositionLegal(x,y,image.size[0]//2):
+            x,y = random.randint(self.margin,self.width),random.randint(self.margin,self.height)
+        self.allocatedSpace.append((x-image.size[0]//2,y-image.size[1]//2,x+image.size[0]//2,y+image.size[1]//2))
+        self.positions.append((x,y))
+        return (x,y)
+
+    def getImageCollagePositions(self):
+        for i in range(len(self.items)):
+            self.getImageCollagePosition(i)
+        return self.positions
