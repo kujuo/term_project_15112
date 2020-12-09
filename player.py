@@ -92,7 +92,7 @@ class PlayerMode(Mode):
 # key pressed functions
     def handleDownKey(mode):
         if mode.selectQueueMode:
-            if mode.selectionMode in 'artist,playlist':
+            if mode.selectionMode in 'artist,playlist,album':
                 mode.textSelectionPosition += 1
         else:
             mode.volume -= 0.05
@@ -100,7 +100,7 @@ class PlayerMode(Mode):
 
     def handleUpKey(mode):
         if mode.selectQueueMode:
-            if mode.selectionMode in 'artist,playlist':
+            if mode.selectionMode in 'artist,playlist,album':
                 mode.textSelectionPosition -= 1
         else:
             mode.volume += 0.05
@@ -109,10 +109,10 @@ class PlayerMode(Mode):
     def handleEnterKey(mode):
         if mode.selectQueueMode:
             if mode.selectionMode == 'artist':
-                print(songsXML.getAllArtists()[mode.textSelectionPosition])
                 mode.queueArtist(songsXML.getAllArtists()[mode.textSelectionPosition])
-                for song in mode.queue.getSongs():
-                    print(song.title)
+            elif mode.selectionMode == 'album':
+                album = songsXML.getAllAlbums()[mode.textSelectionPosition]
+                mode.queueAlbum(album[0],album[1])
             elif mode.selectionMode == 'playlist':
                 # mode.queuePlaylist(play)
                 pass
@@ -126,7 +126,7 @@ class PlayerMode(Mode):
             elif key == '3':
                 mode.selectionMode = 'artist'
             elif key == '4':
-                pass
+                mode.selectionMode = 'playlist'
             elif key == '5':
                 mode.queueTodayPlaylist()
             elif key == '6':
@@ -143,13 +143,6 @@ class PlayerMode(Mode):
                         else:
                             selection = mode.getUserInput('choose song')
                             mode.queue.addSong(result[int(selection)])
-        # else:
-        #     mode.queuePos += int(key)
-        #     mode.loadNowPlaying()
-        #     mode.loadNowPlayingCover()
-                # build queue mode
-                # include save queue as playlist button
-                # also write playlists to xml file
 
     def handleSpaceKey(mode):
         if not mode.selectQueueMode:
@@ -181,6 +174,9 @@ class PlayerMode(Mode):
         elif event.key == 's':
             if not mode.selectQueueMode:
                 mode.shuffleQueue()
+        elif event.key == 'S':
+            if not mode.selectQueueMode:
+                mode.saveQueueAsPlaylist()
         elif event.key == 'r':
             mode.repeatCurrent = not mode.repeatCurrent
         elif event.key == 'R':
@@ -237,6 +233,13 @@ class PlayerMode(Mode):
         mode.queue.removeAllSongs()
         mode.queue.addSongs(songsXML.getAllSongs())
         mode.selectQueueMode = False
+
+    def saveQueueAsPlaylist(mode):
+        title = mode.getUserInput('enter playlist title')
+        playlist = Playlist(title,None)
+        playlist.addSongs(mode.queue.getSongs())
+        playlistXML.addPlaylist(playlist,True)
+        playlistXML.updatePlaylist(playlist)
 
     def shuffleQueue(mode):
         songs = mode.queue.getSongs()[mode.queuePos:]
@@ -359,9 +362,8 @@ class PlayerMode(Mode):
             pass
 
     def drawAllAlbums(mode,canvas):
-        for albumCover in mode.allAlbumCovers:
-            # canvas.create_image()
-            pass
+        albums = songsXML.getAllAlbums()
+        mode.drawTextItemSelection(canvas,albums,mode.textSelectionPosition)
     
     def drawAllArtists(mode,canvas):
         artists = songsXML.getAllArtists()
