@@ -34,9 +34,9 @@ class PlayerMode(Mode):
         mode.qButtons = {
             'all':(mode.width//1.5-5,50,
                    mode.width//1.5+5,60),
-            'artist':(mode.width//1.5-5,70,
+            'album':(mode.width//1.5-5,70,
                       mode.width//1.5+5,80),
-            'album':(mode.width//1.5-5,90,
+            'artist':(mode.width//1.5-5,90,
                      mode.width//1.5+5,100),
             'playlist':(mode.width//1.5-5,110,
                         mode.width//1.5+5,120),
