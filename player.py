@@ -60,34 +60,29 @@ class PlayerMode(Mode):
         mode.allAlbumCovers = []
         mode.textSelectionPosition = 0
     
+    def resetPlayer(mode):
+        mode.queue.removeAllSongs()
+        mixer.music.unload()
+        mode.mixerLoaded = False
+        mode.queuePos = 0
+        mode.nowPlaying = None
+        mode.nowPlayingImage = None
+        mode.nowPlayingSound = None
+        mode.paused = False
+        mode.repeatCurrent = False
+        mode.repeatQueue = False
+        mode.selectQueueMode = True
+        mode.selectionMode = ''
+        mode.textSelectionPosition = 0
+        mode.ignorePlay = False
+    
     def initializePlayer(mode):
         mixer.init()
         songsXML.addAllSongs()
         mode.lastSync = settingsXML.getLastCloudSync()
         settingsXML.writeLastCloudSync(int(time.time()))
-        songsXML.refreshLibraryFromCloud(user.getRecentTracks(mode.lastSync)) #TODO: testing the other TODO
+        songsXML.refreshLibraryFromCloud(user.getRecentTracks(mode.lastSync))
         userXML.addSongsFromCloud(user.getRecentTracks(mode.lastSync))
-
-# mouse pressed functions
-    def queueButtonClicked(mode,button,x,y):
-        return (mode.qButtons[buttons][0] <= x <= mode.qButtons[buttons][2] and
-                mode.qButtons[buttons][1] <= y <= mode.qButtons[buttons][3])
-
-    # selection mode buttons
-    def albumCoverClicked(mode,x,y):
-        pass
-
-    # def artistNameClicked(mode,x,y):
-    #     pass
-
-    # def playlistNameClicked(mode,x,y):
-    #     pass
-
-    def mousePressed(mode,event):
-        pass
-    # end of selection mode buttons
-
-# end of mouse pressed functions
 
 # key pressed functions
     def handleDownKey(mode):
@@ -114,8 +109,8 @@ class PlayerMode(Mode):
                 album = songsXML.getAllAlbums()[mode.textSelectionPosition]
                 mode.queueAlbum(album[0],album[1])
             elif mode.selectionMode == 'playlist':
-                # mode.queuePlaylist(play)
-                pass
+                playlist = playlistXML.getAllPlaylists()[mode.textSelectionPosition]
+                mode.queuePlaylist(playlist)
     
     def handleDigitKey(mode,key):
         if mode.selectQueueMode:
@@ -131,8 +126,8 @@ class PlayerMode(Mode):
                 mode.queueTodayPlaylist()
             elif key == '6':
                 while True:
-                    query = mode.getUserInput('enter song title, enter x when done')
-                    if query == 'x':
+                    query = mode.getUserInput('enter song title, press enter when done')
+                    if query == '':
                         mode.selectQueueMode = False
                         break
                     result = songsXML.getSongTitleMatches(query)
@@ -187,42 +182,28 @@ class PlayerMode(Mode):
             mode.app.setActiveMode(mode.app.dataMode)
 # end of key pressed functions
 
-    def resetPlayer(mode):
-        mode.queue.removeAllSongs()
-        mixer.music.unload()
-        mode.mixerLoaded = False
-        mode.queuePos = 0
-        mode.nowPlaying = None
-        mode.nowPlayingImage = None
-        mode.nowPlayingSound = None
-        mode.paused = False
-        mode.repeatCurrent = False
-        mode.selectQueueMode = True
-        mode.selectionMode = ''
-        mode.textSelectionPosition = 0
-
 # player queue functions
     def queueAlbum(mode,album,artist):
         mode.queue.removeAllSongs()
         mode.queue.addSongs(songsXML.getAlbumSongs(album,artist))
         mode.selectQueueMode = False
+        mode.textSelectionPosition = 0
 
     def queueArtist(mode,artist):
         mode.queue.removeAllSongs()
         mode.queue.addSongs(songsXML.getArtistSongs(artist))
-        for song in songsXML.getArtistSongs(artist):
-            print(song.title)
         mode.selectQueueMode = False
         mode.textSelectionPosition = 0
 
     def queuePlaylist(mode,playlist):
         mode.queue.removeAllSongs()
         mode.queue.addSongs(playlist.getSongs())
+        playlistXML.updatePlaylistPlaycount(playlist.title)
         mode.selectQueueMode = False
+        mode.textSelectionPosition = 0
 
     def queueTodayPlaylist(mode):
         date = datetime.date.today()
-        print(date)
         dayType = userXML.getDayType(date)
         dayTime = userXML.getDayTime(date)
         playlist = userXML.getSongsForDayType(dayType,dayTime)
@@ -359,7 +340,7 @@ class PlayerMode(Mode):
         elif mode.selectionMode == 'artist':
             mode.drawAllArtists(canvas)
         elif mode.selectionMode == 'playlist':
-            pass
+            mode.drawAllPlaylists(canvas)
 
     def drawAllAlbums(mode,canvas):
         albums = songsXML.getAllAlbums()
@@ -368,6 +349,10 @@ class PlayerMode(Mode):
     def drawAllArtists(mode,canvas):
         artists = songsXML.getAllArtists()
         mode.drawTextItemSelection(canvas,artists,mode.textSelectionPosition)
+
+    def drawAllPlaylists(mode,canvas):
+        playlists = playlistXML.getAllPlaylistTitles()
+        mode.drawTextItemSelection(canvas,playlists,mode.textSelectionPosition)
 
     # L is a list containing the items that the user can select between
     # (like songs in an album, all artists, etc)
@@ -414,9 +399,9 @@ class PlayerMode(Mode):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
         canvas.create_text(mode.width//2,mode.height,text='press x to return to selection',fill=scheme.getAccent1(),font=fonts['accent'],anchor='s')
         if mode.selectQueueMode:
-            if mode.selectionMode == '':
-                mode.drawQueuesForSelection(canvas)
-            else:
-                mode.drawSelectionMode(canvas)
+            # if mode.selectionMode == '':
+            #     mode.drawQueuesForSelection(canvas)
+            # else:
+            mode.drawSelectionMode(canvas)
         else:
             mode.drawPlayerMode(canvas)

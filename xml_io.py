@@ -287,8 +287,16 @@ class PlaylistXML(object):
     def addAllPlaylists(self):
         for playlist in self.root.findall('./playlist'):
             songs = playlist.getchildren()
+            songObjs = []
+            for song in songs:
+                songObjs.append(Song(
+                    song.attrib['title'],
+                    song.attrib['artist'],
+                    song.attrib['album'],
+                    song.attrib['path']
+                ))
             playlist = Playlist(playlist.attrib['title'],None)
-            playlist.addSongs(songs)
+            playlist.addSongs(songObjs)
             self.allPlaylists.append(playlist)
 
     def updatePlaylist(self,playlist):
@@ -303,11 +311,16 @@ class PlaylistXML(object):
                 song.set('path',songObj.path)
         self.tree.write(self.filename)
     
+    def updatePlaylistPlaycount(self,title):
+        playlistElem = self.root.find('./playlist[@title="'+title+'"]')
+        count = int(playlistElem.attrib['playcount']) + 1
+        playlistElem.attrib['playcount'] = count
+    
     def getSongsInPlaylist(self,title):
-        playlist = []
+        playlist = Playlist(title,None)
         if self.root.find('./playlist[@title="'+title+'"]') != None:
             for song in self.root.findall('./playlist[@title="'+title+'"]/song'):
-                playlist.append(Song(
+                playlist.addSong(Song(
                     song.attrib['title'],
                     song.attrib['artist'],
                     song.attrib['album'],
@@ -315,11 +328,20 @@ class PlaylistXML(object):
                 ))
         else:
             print('No playlist found')
+        return playlist
     
     def getAllPlaylists(self):
         if self.allPlaylists == []:
             self.addAllPlaylists()
         return self.allPlaylists
+    
+    def getAllPlaylistTitles(self):
+        if self.allPlaylists == []:
+            self.addAllPlaylists()
+        titles = []
+        for playlist in self.allPlaylists:
+            titles.append(playlist.title)
+        return titles
         
 
 
