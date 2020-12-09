@@ -1,3 +1,9 @@
+# Handles input and output to generated XML files to store user data.
+# 4 types in this file:
+    # playlists
+    # settings
+    # song data
+    # user listening data
 import xml.etree.ElementTree as ET
 import os
 import datetime,time
@@ -584,7 +590,7 @@ class UserDataXML(object):
         topSongs = []
         date = str(date)
         if self.tree.find('./day[@date="'+date+'"]') != None:
-            for song in self.tree.find('./day[@date="'+date+'"]/song'):
+            for song in self.tree.findall('./day[@date="'+date+'"]/song'):
                 topSongs.append(song.attrib)
         topSongs.sort(key=(lambda d: d['playcount']),reverse=True)
         return topSongs

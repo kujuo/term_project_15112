@@ -96,8 +96,8 @@ class DataMode(Mode):
                 elif view == 'artist':
                     mode.loadTopArtists()
             elif mode.currentMode == 'today':
-                if view == 'playback':
-                    mode.loadDayTopSong()
+                mode.loadDayTopSong()
+                # if view == 'playback':
             elif mode.currentMode == 'all time':
                 if view == 'playback':
                     mode.loadAllTime()
@@ -172,7 +172,6 @@ class DataMode(Mode):
         for element in topArtists:
             url = user.getArtistImgURL(element['artist'])
             image = mode.loadImage(url)
-            # scale = int(element['playcount'])/topArtistPlaycount
             scale = 1
             mode.images.append((mode.scaleImage(image,scale),element['artist'],element['playcount']))
 
@@ -278,7 +277,7 @@ class DataMode(Mode):
         canvas.create_text(mode.width//2,mode.height//2+200,text=str(playcount),fill=scheme.getAccent1(),font=fonts['accent'])
 
     def drawToday(mode,canvas):
-        view = mode.viewModes[mode.currentMode][mode.currentModeDisplayPos]
+        view = mode.viewModes[mode.currentMode][mode.currentModePos]
         if view == '':
             canvas.create_text(mode.width//2,mode.height//2,text="today's stats",fill=scheme.getAccent1(),font=fonts['title'])
             canvas.create_text(mode.width//2,mode.height//2+100,text=str(datetime.date.today()),fill=scheme.getAccent1(),font=fonts['accent'])
@@ -334,7 +333,7 @@ class DataMode(Mode):
             canvas.create_text(mode.width-50,10,text=str(mode.totalListeningTime),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
             canvas.create_text(mode.width-50,60,text='minutes',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='ne')
 
-            canvas.create_text(mode.width-50,mode.height-80,text=str(mode.totalListeningTime/mode.totalListeningDays),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
+            canvas.create_text(mode.width-50,mode.height-80,text=str(mode.totalListeningTime//mode.totalListeningDays),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
             canvas.create_text(mode.width-50,mode.height-20,text='minutes/day',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='ne')
 
             canvas.create_image(mode.width//2,mode.height//2-60,image=ImageTk.PhotoImage(mode.images[0]))
