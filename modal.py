@@ -1,3 +1,5 @@
+# Main file. This is the one to run! Integrates all other files.
+
 from cmu_112_graphics import *
 # ----
 from welcome import *

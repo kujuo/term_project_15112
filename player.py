@@ -1,3 +1,5 @@
+# Draws the player page. Uses pygame mixer module to play audio.
+
 from cmu_112_graphics import *
 from xml_io import *
 from lastfm import *
@@ -60,6 +62,7 @@ class PlayerMode(Mode):
         mode.allAlbumCovers = []
         mode.textSelectionPosition = 0
     
+    # reset when user goes to select different queue
     def resetPlayer(mode):
         mode.queue.removeAllSongs()
         mixer.music.unload()
@@ -285,6 +288,7 @@ class PlayerMode(Mode):
         if mode.nowPlayingSound != None:
             if mixer.music.get_pos() == -1 and mode.queuePos < mode.queue.getLength():
                 mode.handleNextSong()
+# end of queue functions
 
     def getAllAlbumCovers(mode):
         allAlbums = songsXML.getAllAlbums()
@@ -391,17 +395,11 @@ class PlayerMode(Mode):
             length = 200*((mixer.music.get_pos()//1000)/mode.nowPlayingSound.get_length())
             canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2+100,mode.height//1.5+10,fill='white',width=0)
             canvas.create_rectangle(mode.width//2-100,mode.height//1.5,mode.width//2-100+int(length),mode.height//1.5+10,fill=scheme.getAccent2(),width=0)
-    
-    # def drawQueue(mode,canvas):
-
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
         canvas.create_text(mode.width//2,mode.height,text='press x to return to selection',fill=scheme.getAccent1(),font=fonts['accent'],anchor='s')
         if mode.selectQueueMode:
-            # if mode.selectionMode == '':
-            #     mode.drawQueuesForSelection(canvas)
-            # else:
             mode.drawSelectionMode(canvas)
         else:
             mode.drawPlayerMode(canvas)

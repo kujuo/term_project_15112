@@ -1,3 +1,4 @@
+# handles user check-ins on the main page
 from cmu_112_graphics import *
 from design import *
 from xml_io import *

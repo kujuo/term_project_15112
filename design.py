@@ -1,3 +1,4 @@
+# Classes to handle design aspect of application. Fonts, color schemes, etc.
 from xml_io import *
 
 fonts = {

@@ -1,3 +1,5 @@
+# draws the help screen on the main page, has instructions
+# for the rest of the app
 from cmu_112_graphics import *
 from design import *
 

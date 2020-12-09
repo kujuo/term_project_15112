@@ -1,3 +1,5 @@
+# Draws the welcome screen that appears when the app is started.
+
 from cmu_112_graphics import *
 from design import *
 from xml_io import *

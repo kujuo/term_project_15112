@@ -1,3 +1,4 @@
+# Draws user settings page, allows users to change theme, day types, etc.
 from cmu_112_graphics import *
 from xml_io import *
 from design import *
@@ -38,7 +39,7 @@ class SettingsMode(Mode):
 
     def mousePressed(mode,event):
         if mode.rootClicked(event.x,event.y):
-            mode.rootDir = mode.getUserInput('enter path to root music directory')
+            mode.rootDir = mode.getUserInput('enter path to root music directory (do not include / at end)')
         elif mode.lastfmClicked(event.x,event.y):
             mode.lastfmUser = mode.getUserInput('enter last.fm username')
         elif mode.colorClicked(event.x,event.y):

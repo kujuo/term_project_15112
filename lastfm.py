@@ -1,3 +1,5 @@
+# Class to handle interaction with last.fm API, various methods to simplify
+# data input and output
 import requests
 from apikey import *
 from playlist import *

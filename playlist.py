@@ -1,4 +1,5 @@
-# Song = make_dataclass('Song',['title','path'])
+# Classes for song and playlist objects. Simplifies user experience and
+# makes code more clean.
 class Song(object):
     def __init__(self,title,artist,album,path,playcount=0):
         self.title = title

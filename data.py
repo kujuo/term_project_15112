@@ -1,3 +1,5 @@
+# handles drawing the user data page; various modes depending on user selection
+
 from cmu_112_graphics import *
 from lastfm import *
 from design import *
