@@ -24,12 +24,12 @@ class CheckInMode(Mode):
                       mode.gridBounds(5,0)[2],mode.gridBounds(5,0)[3]),
         }
         mode.textMapping = {
-            'type1':'happy',
-            'type2':'sad',
-            'type3':'numb/grey',
-            'type4':'stressed',
-            'type5':'tired/sick',
-            'type6':'energetic/awake/hype',
+            'type1':'mood 1 ( 1 )',
+            'type2':'mood 2 ( 2 )',
+            'type3':'mood 3 ( 3 )',
+            'type4':'mood 4 ( 4 )',
+            'type5':'mood 5 ( 5 )',
+            'type6':'mood 6 ( 6 )',
         }
         mode.date = datetime.date.today()
         mode.sessionTime = (datetime.datetime.now().strftime('%H') +
