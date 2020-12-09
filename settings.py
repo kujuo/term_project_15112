@@ -8,14 +8,14 @@ class SettingsMode(Mode):
     # enter last.fm username
     def appStarted(mode):
         mode.buttons = {
-            'root': (mode.width//1.5-5,mode.height//4-5,
-                           mode.width//1.5+5,mode.height//4+5),
-            'last.fm': (mode.width//1.5-5,mode.height//2-5,
-                               mode.width//1.5+5,mode.height//2+5),
-            'color': (mode.width//1.5-5,3*mode.height//4-5,
-                               mode.width//1.5+5,3*mode.height//4+5),
-            'refresh': (mode.width//1.5-5,3*mode.height//3.5-5,
-                               mode.width//1.5+5,3*mode.height//3.5+5),
+            'root': (mode.width//1.5-5,20,
+                     mode.width//1.5+5,30),
+            'last.fm': (mode.width//1.5-5,50,
+                        mode.width//1.5+5,60),
+            'color': (mode.width//1.5-5,80,
+                      mode.width//1.5+5,90),
+            'refresh': (mode.width//1.5-5,110,
+                        mode.width//1.5+5,120),
         }
         mode.rootDir = settingsXML.getRootDir()
         mode.lastfmUser = settingsXML.getLastFM()
@@ -55,6 +55,15 @@ class SettingsMode(Mode):
         settingsXML.writeColorMode(scheme.getColor())
         songsXML.refreshLibrary()
 
+    def handleDigitKey(mode,key):
+        typeName = mode.getUserInput('enter day type name')
+        colorR = mode.getUserInput('enter rgb "r" value')
+        colorG = mode.getUserInput('enter rgb "g" value')
+        colorB = mode.getUserInput('enter rgb "b" value')
+        settingsXML.writeDayType(key,typeName)
+        settingsXML.writeDayColor(key,colorR,colorG,colorB)
+        scheme.setTypeColor(key,colorR,colorG,colorB)
+
     def keyPressed(mode,event):
         if event.key == 'x':
             mode.handleChange()
@@ -70,6 +79,8 @@ class SettingsMode(Mode):
                 scheme.setColor('dark')
         elif event.key == 'r':
             mode.handleChange()
+        elif event.key in '123456':
+            mode.handleDigitKey(event.key)
 
 
     def drawButtons(mode,canvas):
@@ -99,6 +110,9 @@ class SettingsMode(Mode):
         canvas.create_text(50,(mode.buttons['refresh'][1]+mode.buttons['refresh'][3])//2,
                            text='refresh your music library ( r )',font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
+        canvas.create_text(50,200,
+                    text='press a number to change day type and color ( digit key )',
+                    font=fonts['accent'], fill=scheme.getAccent1(),anchor='w')
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())

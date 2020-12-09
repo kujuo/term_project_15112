@@ -1,3 +1,5 @@
+from xml_io import *
+
 fonts = {
     'title':'Ubuntu 36',
     'accent':'Ubuntu 12',
@@ -10,12 +12,12 @@ class ColorScheme(object):
     accent2 = {'dark':(255,51,204),'light':(255,255,0)}
 
     types = {
-        'type1':(255,250,0),
-        'type2':(0,0,200),
-        'type3':(100,100,100),
-        'type4':(200,0,0),
-        'type5':(150,30,0),
-        'type6':(150,0,250),
+        'type1':settingsXML.getDayColor(1),
+        'type2':settingsXML.getDayColor(2),
+        'type3':settingsXML.getDayColor(3),
+        'type4':settingsXML.getDayColor(4),
+        'type5':settingsXML.getDayColor(5),
+        'type6':settingsXML.getDayColor(6),
     }
     
     def __init__(self,color):
@@ -53,6 +55,10 @@ class ColorScheme(object):
     def getTypeColor(self,typeNum):
         typeColor = self.types[f'type{typeNum}']
         return self.rgbString(typeColor[0],typeColor[1],typeColor[2])
+
+    def setTypeColor(self,typeNum,r,g,b):
+        index = 'type'+str(typeNum)
+        self.types[index] = (int(r),int(g),int(b))
 
 scheme = ColorScheme('dark')
 

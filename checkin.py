@@ -23,14 +23,6 @@ class CheckInMode(Mode):
             'type6': (mode.gridBounds(5,0)[0],mode.gridBounds(5,0)[1],
                       mode.gridBounds(5,0)[2],mode.gridBounds(5,0)[3]),
         }
-        mode.textMapping = {
-            'type1':'mood 1 ( 1 )',
-            'type2':'mood 2 ( 2 )',
-            'type3':'mood 3 ( 3 )',
-            'type4':'mood 4 ( 4 )',
-            'type5':'mood 5 ( 5 )',
-            'type6':'mood 6 ( 6 )',
-        }
         mode.date = datetime.date.today()
         mode.sessionTime = (datetime.datetime.now().strftime('%H') +
                             datetime.datetime.now().strftime('%M'))
@@ -83,22 +75,22 @@ class CheckInMode(Mode):
 
     def drawText(mode,canvas):
         canvas.create_text(mode.buttons['type1'][2]+10,(mode.buttons['type1'][1]+mode.buttons['type1'][3])//2,
-                           text=mode.textMapping['type1'],font=fonts['accent'],
+                           text=settingsXML.getDayType(1),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(mode.buttons['type2'][2]+10,(mode.buttons['type2'][1]+mode.buttons['type2'][3])//2,
-                           text=mode.textMapping['type2'],font=fonts['accent'],
+                           text=settingsXML.getDayType(2),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(mode.buttons['type3'][2]+10,(mode.buttons['type3'][1]+mode.buttons['type3'][3])//2,
-                           text=mode.textMapping['type3'],font=fonts['accent'],
+                           text=settingsXML.getDayType(3),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(mode.buttons['type4'][2]+10,(mode.buttons['type4'][1]+mode.buttons['type4'][3])//2,
-                           text=mode.textMapping['type4'],font=fonts['accent'],
+                           text=settingsXML.getDayType(4),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(mode.buttons['type5'][2]+10,(mode.buttons['type5'][1]+mode.buttons['type5'][3])//2,
-                           text=mode.textMapping['type5'],font=fonts['accent'],
+                           text=settingsXML.getDayType(5),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
         canvas.create_text(mode.buttons['type6'][2]+10,(mode.buttons['type6'][1]+mode.buttons['type6'][3])//2,
-                           text=mode.textMapping['type6'],font=fonts['accent'],
+                           text=settingsXML.getDayType(6),font=fonts['accent'],
                            fill=scheme.getAccent1(),anchor='w')
 
     def redrawAll(mode,canvas):

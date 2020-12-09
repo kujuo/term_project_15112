@@ -39,6 +39,20 @@ class SettingsXML(object):
             self.tree.find('lastsync').text = data
         self.tree.write(self.filename)
 
+    def writeDayType(self,typeNum,data):
+        data = str(data)
+        typeNum = str(typeNum)
+        index = 'type'+typeNum
+        if self.tree.find('daytypes').attrib[index] != data:
+            self.tree.find('daytypes').attrib[index] = data
+        self.tree.write(self.filename)
+
+    def writeDayColor(self,typeNum,r,g,b):
+        index = 'type'+str(typeNum)
+        self.tree.find('daycolors/'+index).attrib['r']=str(r)
+        self.tree.find('daycolors/'+index).attrib['g']=str(g)
+        self.tree.find('daycolors/'+index).attrib['b']=str(b)
+
     def getRootDir(self):
         return self.tree.find('rootdir').text
     
@@ -50,6 +64,17 @@ class SettingsXML(object):
     
     def getLastCloudSync(self):
         return self.tree.find('lastsync').text
+    
+    def getDayType(self,typeNum):
+        index = 'type'+str(typeNum)
+        return self.tree.find('daytypes').attrib[index]
+    
+    def getDayColor(self,typeNum):
+        index = 'type'+str(typeNum)
+        r = self.tree.find('daycolors/'+index).attrib['r']
+        g = self.tree.find('daycolors/'+index).attrib['g']
+        b = self.tree.find('daycolors/'+index).attrib['b']
+        return (int(r),int(g),int(b))
 
 class SongsXML(object):
     def __init__(self,filename,rootdir):
