@@ -14,15 +14,6 @@ class Song(object):
     def __repr__(self):
         return self.title + ", " + self.path
 
-    # I think this is dead code
-    # TODO: delete
-    def getDict(self):
-        return {'title': self.title,
-                'artist': self.artist,
-                'album': self.album,
-                'playcount': self.playcount}
-
-
 class Playlist(object):
     numPlaylists = 0
     def __init__(self,title,parent):

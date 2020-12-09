@@ -99,7 +99,6 @@ class DataMode(Mode):
                     mode.loadTopArtists()
             elif mode.currentMode == 'today':
                 mode.loadDayTopSong()
-                # if view == 'playback':
             elif mode.currentMode == 'all time':
                 if view == 'playback':
                     mode.loadAllTime()
