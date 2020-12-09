@@ -261,30 +261,66 @@ class SongsXML(object):
         return total
         
 
-class PlaylistsXML(object):
+class PlaylistXML(object):
     def __init__(self,filename):
         self.filename = filename
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
+        self.allPlaylists = []
     
     def addPlaylist(self,playlist,usermade):
         if self.root.find('./playlist[@title="'+playlist.title+'"]') == None:
+            print(playlist.title)
             playlistElem = ET.SubElement(self.root,'playlist')
             playlistElem.attrib['title'] = playlist.title
-            playlistElem.attrib['length'] = playlist.getLength()
+            playlistElem.attrib['length'] = str(playlist.getLength())
+            playlistElem.attrib['playcount'] = '0'
             if usermade:
                 playlistElem.attrib['usermade'] = '1'
             else:
                 playlistElem.attrib['usermade'] = '0'
+            self.allPlaylists.append(playlist)
         else:
             print('A playlist with that name already exists')
+        self.tree.write(self.filename)
+    
+    def addAllPlaylists(self):
+        for playlist in self.root.findall('./playlist'):
+            songs = playlist.getchildren()
+            playlist = Playlist(playlist.attrib['title'],None)
+            playlist.addSongs(songs)
+            self.allPlaylists.append(playlist)
 
     def updatePlaylist(self,playlist):
-        songs = playlist.getSongs()
-        for song in songs:
-            if self.root.find('./playlist[@title="'+playlist.title+'"]/song[@path="'+song.path+'"]') == None:
-                pass
-            #TODO:finish
+        songObjs = playlist.getSongs()
+        playlistElem = self.root.find('./playlist[@title="'+playlist.title+'"]')
+        for songObj in songObjs:
+            if playlistElem.find('./song[@title="'+songObj.title+'"]') == None:
+                song = ET.SubElement(playlistElem,'song')
+                song.set('title',songObj.title)
+                song.set('artist',songObj.artist)
+                song.set('album',songObj.album)
+                song.set('path',songObj.path)
+        self.tree.write(self.filename)
+    
+    def getSongsInPlaylist(self,title):
+        playlist = []
+        if self.root.find('./playlist[@title="'+title+'"]') != None:
+            for song in self.root.findall('./playlist[@title="'+title+'"]/song'):
+                playlist.append(Song(
+                    song.attrib['title'],
+                    song.attrib['artist'],
+                    song.attrib['album'],
+                    song.attrib['path']
+                ))
+        else:
+            print('No playlist found')
+    
+    def getAllPlaylists(self):
+        if self.allPlaylists == []:
+            self.addAllPlaylists()
+        return self.allPlaylists
+        
 
 
 class UserDataXML(object):
@@ -551,6 +587,7 @@ class UserDataXML(object):
 settingsXML = SettingsXML('./xml_files/settings.xml')
 songsXML = SongsXML('./xml_files/songdata.xml',settingsXML.getRootDir())
 userXML = UserDataXML('./xml_files/userdata.xml')
+playlistXML = PlaylistXML('./xml_files/playlists.xml')
 
 username = settingsXML.getLastFM()
 user = LastFMUser(username)
