@@ -292,6 +292,7 @@ class UserDataXML(object):
         self.filename = filename
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
+        self.daysListened = len(self.root.getchildren())
     
     def setDayType(self,dayType,date):
         date = str(date)
@@ -403,8 +404,12 @@ class UserDataXML(object):
     # how often user plays this song across days
     # TODO: modify this to include streamed songs
     def getSongConsistencyScore(self,songObject):
-        daysListened = self.root.findall('./day/song[@path="'+ songObject.path + '"]')
-        return len(daysListened)/len(self.root.getchildren())
+        count = 0
+        for song in self.root.findall('./day/song[@title="'+ songObject.title + '"]'):
+            if song.attrib['artist'] == songObject.artist:
+                count += 1
+
+        return count/self.daysListened
 
     # songs with high playcounts but low consistency score
     def getOneHitWonders(self):
