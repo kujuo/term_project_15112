@@ -17,8 +17,8 @@ class DataMode(Mode):
             'week':['playback','listening'],
             'month':['playback','listening'],
             'all time':['','playback'],
-            'faves':['track','artist','album'],
-            'onehits':['track']
+            'faves':['','covers','titles'],
+            'onehits':['','covers','titles']
         }
         mode.homeButtons = {
             'top5':(mode.width//1.5-5,50,
@@ -39,6 +39,8 @@ class DataMode(Mode):
         mode.totalListeningTime = 0
         mode.totalSongsListened = 0
         mode.totalListeningDays = 0
+        mode.collagePositions = []
+
 
     def mousePressed(mode,event):
         pass
@@ -63,14 +65,25 @@ class DataMode(Mode):
     
     def handleLRKey(mode,key):
         if not mode.homeScreen:
+            print(key,mode.currentMode,mode.currentModePos,mode.currentModeDisplayPos)
             if key == 'Right':
-                mode.currentModeDisplayPos += 1
-                maxPos = len(mode.images)-1
-                mode.currentModeDisplayPos = min(mode.currentModeDisplayPos,maxPos)
+                if mode.currentMode == 'top5':
+                    mode.currentModeDisplayPos += 1
+                    maxPos = len(mode.images)-1
+                    mode.currentModeDisplayPos = min(mode.currentModeDisplayPos,maxPos)
+                elif mode.currentMode == 'faves' or mode.currentMode == 'onehits':
+                    mode.currentModePos += 1
+                    maxPos = len(mode.viewModes[mode.currentMode])
+                    mode.currentModePos = min(mode.currentModePos,maxPos)
                 print(mode.currentMode,mode.currentModeDisplayPos)
             elif key == 'Left':
-                mode.currentModeDisplayPos -= 1
-                mode.currentModeDisplayPos = max(mode.currentModeDisplayPos,0)
+                if mode.currentMode == 'top5':
+                    mode.currentModeDisplayPos -= 1
+                    mode.currentModeDisplayPos = max(mode.currentModeDisplayPos,0)
+                elif mode.currentMode == 'faves' or mode.currentMode == 'onehits':
+                    mode.currentModePos -= 1
+                    maxPos = len(mode.viewModes[mode.currentMode])
+                    mode.currentModePos = max(mode.currentModePos,0)
                 print(mode.currentMode,mode.currentModeDisplayPos)
 
     def handleUDKey(mode,key):
@@ -80,32 +93,37 @@ class DataMode(Mode):
                 mode.currentModePos = max(mode.currentModePos,0)
                 print(mode.currentMode,mode.currentModePos)
             elif key == 'Down':
+                print('loading...')
                 mode.currentModePos += 1
                 maxPos = len(mode.viewModes[mode.currentMode])-1
                 mode.currentModePos = min(mode.currentModePos,maxPos)
-                print(mode.currentMode,mode.currentModePos)
             view = mode.viewModes[mode.currentMode][mode.currentModePos]
             if mode.currentMode == 'top5':
                 if  view == 'track':
-                    mode.loadTopSongImages()
+                    mode.loadTopSongs()
                 elif view == 'album':
-                    mode.loadTopAlbumImages()
+                    mode.loadTopAlbums()
                 elif view == 'artist':
-                    mode.loadTopArtistImages()
+                    mode.loadTopArtists()
             elif mode.currentMode == 'today':
                 if view == 'playback':
-                    mode.loadDayTopSongImages()
+                    mode.loadDayTopSong()
             elif mode.currentMode == 'all time':
                 if view == 'playback':
-                    mode.loadAllTimeImages()
+                    mode.loadAllTime()
+            elif mode.currentMode == 'faves':
+                if view == 'covers':
+                    mode.loadFaves()
+            elif mode.currentMode == 'onehits':
+                if view == 'covers':
+                    mode.loadOneHits()
 
     def keyPressed(mode,event):
-        if event.key == 't':
-            # mode.loadWeekTopSongImages()
-            # print(mode.images)
-            pass
         elif event.key == 'x':
-            mode.app.setActiveMode(mode.app.welcomeMode)
+            if mode.homeScreen:
+                mode.app.setActiveMode(mode.app.welcomeMode)
+            else:
+                mode.appStarted()
         elif event.key == 'Right' or event.key == 'Left':
             mode.handleLRKey(event.key)
         elif event.key == 'Up' or event.key == 'Down':
@@ -113,14 +131,15 @@ class DataMode(Mode):
         elif event.key in '1234567890':
             mode.handleDigitKey(event.key)
         
-    def loadAllTimeImages(mode):
+    def loadAllTime(mode):
         mode.images = []
+        scale = 0.6
         topSong = songsXML.getRankedSongs().getSongs()[0]
         topArtist = songsXML.getRankedArtists()[0]
         songUrl = user.getAlbumCoverURL(topSong.album,topSong.artist)
-        songImage = mode.loadImage(songUrl)
+        songImage = mode.scaleImage(mode.loadImage(songUrl),scale)
         artistUrl = user.getArtistImgURL(topArtist)
-        artistImage = mode.loadImage(artistUrl)
+        artistImage = mode.scaleImage(mode.loadImage(artistUrl),scale)
         mode.images += [songImage,artistImage]
         mode.totalSongsListened = songsXML.getTotalPlaycounts()
         mode.totalListeningTime = userXML.getTotalListeningTime()//60
@@ -136,7 +155,7 @@ class DataMode(Mode):
     #         mode.images.append((mode.scaleImage(image,scale),song['title'],song['artist'],song['playcount']))
             # mode.totalListeningTime = int(userXML.getWeekListeningTime(datetime.date.today()))//60
 
-    def loadDayTopSongImages(mode):
+    def loadDayTopSong(mode):
         mode.images = []
         topSongs = userXML.getDayTopSongs(datetime.date.today())[:5]
         for song in topSongs:
@@ -148,7 +167,7 @@ class DataMode(Mode):
             mode.totalListeningTime = int(userXML.getDayListeningTime(datetime.date.today()))//60
             mode.totalSongsListened = int(userXML.getDayTotalSongs(datetime.date.today()))
 
-    def loadTopSongImages(mode):
+    def loadTopSongs(mode):
         mode.images = []
         topSongs = songsXML.getRankedSongs().getSongs()[:6]
         for song in topSongs:
@@ -158,7 +177,7 @@ class DataMode(Mode):
             scale = 1
             mode.images.append((mode.scaleImage(image,scale),song.title,song.artist,song.playcount))
     
-    def loadTopAlbumImages(mode):
+    def loadTopAlbums(mode):
         mode.images = []
         topAlbums = songsXML.getRankedAlbums()[:6]
         topAlbumPlaycount = int(topAlbums[0]['playcount'])
@@ -169,7 +188,7 @@ class DataMode(Mode):
             scale = 1
             mode.images.append((mode.scaleImage(image,scale),element['album'],element['artist'],element['playcount']))
     
-    def loadTopArtistImages(mode):
+    def loadTopArtists(mode):
         mode.images = []
         topArtists = songsXML.getRankedArtists()[:6]
         topArtistPlaycount = int(topArtists[0]['playcount'])
@@ -179,6 +198,37 @@ class DataMode(Mode):
             # scale = int(element['playcount'])/topArtistPlaycount
             scale = 1
             mode.images.append((mode.scaleImage(image,scale),element['artist'],element['playcount']))
+
+    # TODO: modify to take function as parameter
+    def loadFaves(mode):
+        mode.images = []
+        faves = userXML.getConsistentFaves()
+        scale = 1
+        for song in faves.getSongs()[:15]:
+            # url = user.getAlbumCoverURL(song.album,song.artist)
+            url = 'default.png'
+            image = mode.loadImage(url)
+            print(song.title)
+            mode.images.append((mode.scaleImage(image,scale),song.title,song.artist,song.playcount))
+            if scale > 0.3:
+                scale -= 0.2
+        collage = Collage(mode.images,mode.width,mode.height)
+        mode.collagePositions = collage.getImageCollagePositions()
+    
+    def loadOneHits(mode):
+        mode.images = []
+        onehits = userXML.getOneHitWonders()
+        scale = 1
+        for song in onehits.getSongs()[:15]:
+            # url = user.getAlbumCoverURL(song.album,song.artist)
+            url = 'default.png'
+            image = mode.loadImage(url)
+            print(song.title)
+            mode.images.append((mode.scaleImage(image,scale),song.title,song.artist,song.playcount))
+            if scale > 0.3:
+                scale -= 0.2
+        collage = Collage(mode.images,mode.width,mode.height)
+        mode.collagePositions = collage.getImageCollagePositions()
 
     def drawHomePage(mode,canvas):
         canvas.create_text(50,(mode.homeButtons['top5'][1]+mode.homeButtons['top5'][3])//2,
@@ -214,10 +264,8 @@ class DataMode(Mode):
             pass
         elif mode.currentMode == 'all time':
             mode.drawAllTime(canvas)
-        elif mode.currentMode == 'faves':
-            pass
-        elif mode.currentMode == 'onehits':
-            pass
+        elif mode.currentMode == 'faves' or mode.currentMode == 'onehits':
+            mode.drawFavesOrOneHits(canvas)
             # draw # of tracks listened to, 
 
     def drawTop5(mode,canvas):
@@ -265,7 +313,7 @@ class DataMode(Mode):
         canvas.create_text(mode.width//2,mode.height//2+200,text=str(playcount),fill=scheme.getAccent1(),font=fonts['accent'])
 
     def drawToday(mode,canvas):
-        view = mode.viewModes[mode.currentMode][mode.currentModePos]
+        view = mode.viewModes[mode.currentMode][mode.currentModeDisplayPos]
         if view == '':
             canvas.create_text(mode.width//2,mode.height//2,text="today's stats",fill=scheme.getAccent1(),font=fonts['title'])
             canvas.create_text(mode.width//2,mode.height//2+100,text=str(datetime.date.today()),fill=scheme.getAccent1(),font=fonts['accent'])
@@ -285,6 +333,24 @@ class DataMode(Mode):
             canvas.create_text(mode.width-10,mode.height-50,text=str(mode.totalListeningTime),fill=scheme.getAccent2(),font=fonts['title'],anchor='e')
             canvas.create_text(mode.width-10,mode.height-20,text='minutes',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='e')
     
+    def drawFavesOrOneHits(mode,canvas):
+        view = mode.viewModes[mode.currentMode][mode.currentModePos]
+        if view == '':
+            canvas.create_text(mode.width//2,mode.height//2,text="your all-time",fill=scheme.getAccent1(),font=fonts['title'])
+            canvas.create_text(mode.width//2,mode.height//2+65,text="favorite songs",fill=scheme.getAccent1(),font=fonts['title'])
+            canvas.create_text(mode.width//2,mode.height-50,text='press down arrow to continue',fill=scheme.getAccent1(),font=fonts['accent'])
+        elif view == 'covers':
+            i = 0
+            for x,y in mode.collagePositions:
+                canvas.create_image(x,y,image=ImageTk.PhotoImage(mode.images[i][0]))
+                i += 1
+        elif view == 'titles':
+            dHeight = 20
+            for element in mode.images:
+                canvas.create_text(10,20+dHeight*1.5,text=element[1]+ ': '+element[3],fill=scheme.getAccent2(),font=fonts['accent'],anchor='w')
+                canvas.create_text(mode.width-10,20+dHeight*1.5,text=element[2],fill=scheme.getAccent2(),font=fonts['accent2'],anchor='e')
+                dHeight += 20
+
     # def drawWeek(mode,canvas):
     #     pass
 
@@ -309,8 +375,8 @@ class DataMode(Mode):
             canvas.create_text(mode.width-50,mode.height-80,text=str(mode.totalListeningTime/mode.totalListeningDays),fill=scheme.getAccent2(),font=fonts['title'],anchor='ne')
             canvas.create_text(mode.width-50,mode.height-20,text='minutes/day',fill=scheme.getAccent1(),font=fonts['accent2'],anchor='ne')
 
-            canvas.create_image(mode.width//2,mode.height//2-50,image=ImageTk.PhotoImage(mode.images[0]))
-            canvas.create_image(mode.width//2,mode.height//2+50,image=ImageTk.PhotoImage(mode.images[1]))
+            canvas.create_image(mode.width//2,mode.height//2-60,image=ImageTk.PhotoImage(mode.images[0]))
+            canvas.create_image(mode.width//2,mode.height//2+60,image=ImageTk.PhotoImage(mode.images[1]))
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill=scheme.getFill())
