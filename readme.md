@@ -29,3 +29,8 @@ All other shortcuts are listed within the application itself.
 ### List of APIs and python3 modules used in this application:
 - [Last.fm API](https://www.last.fm/api)
 - [PyGame Mixer](https://www.pygame.org/docs/ref/mixer.html)
+
+### If you want some free, public domain audio to test with this app:
+<https://drive.google.com/drive/folders/1NUSdnaT_4tpjhzQ6rRyAW6yGEm-jU4t0?usp=sharing>
+Download this folder, and input the download location into your "root directory" setting.
+Make sure you don't put a '/' at the end of your path.
