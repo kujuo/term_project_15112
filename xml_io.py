@@ -541,7 +541,6 @@ class UserDataXML(object):
         playlist.addSongsDict(result)
         return playlist
     
-    # TODO: implement "keep coming back to" songs and "on repeat one hit wonder" songs
     def getSongDayTypeScore(self,currTime,song):
         dHours = abs(int(currTime)//100 - int(song['time'])//100)
         dMinutes = abs(int(currTime)%100 - int(song['time'])%100)
