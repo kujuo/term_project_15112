@@ -18,6 +18,7 @@ attune is a music application that synchronizes and analyzes the user’s listen
 - Run the modal.py file **from the terminal (if on Linux/Mac) or cmd (if on Windows)**. Don't use the 'run' button in your IDE.
 - If you're on Linux/Mac, PyGame Mixer is unpredictable about mp3 file support. Try using flac, wav, or ogg files.
 - Create a last.fm account for the best experience with music synchronization.
+- If syncing music with last.fm account, create a file called 'apikey.py' in the home directory of this project, and paste `api_key = 'abcdefghijklmnopqrstuvwxyz123456'` only in there. Obviously, replace the faux API key with the one you created.
 
 ### Shortcuts:
 - This app can be completely controlled through keyboard shortcuts.
